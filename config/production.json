@@ -1,0 +1,19 @@
+{
+    "isDev": false,
+    "isSecure": true,
+    "session": {
+        "host": "localhost",
+        "port": 6379,
+        "db": 1,
+        "secret": "bang!",
+        "secure": true
+    },
+    "http": {
+        "listen": "localhost",
+        "port": 8282
+    },
+    "client": {
+        "apiUrl": "https://www.windwuponthewater.com:80",
+        "debugMode": false
+    }
+}

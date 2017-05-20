@@ -1,0 +1,34 @@
+section.page.home
+  //- grid content
+  div.container
+    div.row
+      div.col-sm-4
+        div.panel.panel-primary
+          div.panel-heading
+            h3.panel-title checkout methods
+          div.panel-body
+            p
+              button.btn.btn-lg.btn-default(type="button") Ad-hoc Paypal
+            p
+              button.btn.btn-lg.btn-default(type="button") Ad-hoc Stripe
+
+      div.col-sm-4
+        picture
+          source(data-srcset="/images/rocks_64w.jpg 64w, /images/rocks_150w.jpg 150w" media="--small")
+          source(data-srcset="/images/rocks_150w.jpg 150w, /images/rocks_300w.jpg 300w" media="--medium")
+          source(data-srcset="/images/rocks_300w.jpg 300w")
+          img.lazyload(data-src="holder.js/75px56p?theme=custom&font=Glyphicons Halflings&text=%EE%81%86&auto=yes" data-sizes="auto")
+      div.col-sm-4
+        picture
+          source(data-srcset="/images/dogmassage_64w.jpg 64w, /images/dogmassage_150w.jpg 150w" media="--small")
+          source(data-srcset="/images/dogmassage_150w.jpg 150w, /images/dogmassage_300w.jpg 300w" media="--medium")
+          source(data-srcset="/images/dogmassage_300w.jpg 300w")
+          img.lazyload(data-src="holder.js/75px56p?theme=custom&font=Glyphicons Halflings&text=%EE%81%86&auto=yes" data-sizes="auto")
+    div.row.flow-paypal
+      div.col-sm-4
+        div.flow-step1 form here
+      div.col-sm-4
+        div.flow-step2 button here
+      div.col-sm-4
+        div.flow-step3 confirmation here
+        

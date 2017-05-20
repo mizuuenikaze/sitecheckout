@@ -1,0 +1,35 @@
+// app/layout.styl
+
+@import '../_variables'
+@import '../_mixins'
+@import 'footer'
+
+
+// your styles here:
+body
+  color $text
+  font-size $fontMD
+
+.carousel
+  background-color #a59ad2
+  color $carouselText
+
+.carousel-inner
+  > .item
+    img
+      display block
+      margin 0 auto
+      max-height 650px
+      min-height 150px
+      max-width 100%
+      min-width 25%
+    > .carousel-caption
+      text-align left
+      font-size $fontLG
+
+.lazyload
+.lazyloading
+  opacity 0.2
+.lazyloaded
+  opacity 1
+  transition opacity 1s ease 0s

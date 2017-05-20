@@ -1,0 +1,10 @@
+node_modules/
+artifacts/
+public/
+client/templates.js
+stylesheets/app.css
+# autotools
+autom4te.cache/
+Makefile
+config.log
+config.status
