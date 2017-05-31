@@ -1,5 +1,4 @@
-var AmpersandModel = require('ampersand-model');
-
+var AmpersandModel = require('./localStorageModel');
 
 module.exports = AmpersandModel.extend({
     type: 'user',
@@ -7,10 +6,12 @@ module.exports = AmpersandModel.extend({
         id: ['string'],
         firstName: ['string', true, ''],
         lastName: ['string', true, ''],
-        username: ['string']
+        userName: ['string'],
+		token: ['string', true, '']
     },
 	session: {
-		token: ['string', true, '']
+		hateoas: ['array'],
+		message: ['string']
 	},
     derived: {
         fullName: {

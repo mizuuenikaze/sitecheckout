@@ -9,7 +9,6 @@ var _ = require('lodash');
 var domify = require('domify');
 var localLinks = require('local-links');
 var templates = require('../templates');
-var config = require('clientconfig');
 
 
 module.exports = View.extend({
@@ -25,7 +24,7 @@ module.exports = View.extend({
     render: function () {
         // some additional stuff we want to add to the document head
         var theFirstChild = document.head.firstChild;
-        document.head.insertBefore(domify(templates.head({isDebug: config.debugMode})), theFirstChild);
+        document.head.insertBefore(domify(templates.head({isDebug: app.debugMode})), theFirstChild);
 
         // main renderer
         this.renderWithTemplate(this);
@@ -34,7 +33,7 @@ module.exports = View.extend({
         this.pageSwitcher = new ViewSwitcher(this.queryByHook('page-container'), {
             show: function (newView, oldView) {
                 // it's inserted and rendered for me
-                document.title = _.result(newView, 'pageTitle') || 'massage';
+                document.title = _.result(newView, 'pageTitle') || 'checkout';
                 document.scrollTop = 0;
 
                 // add a class specifying it's active
@@ -45,6 +44,9 @@ module.exports = View.extend({
 
 				// some modules don't see new elements
 				app.reInitModules();
+				if (newView.postRender) {
+					newView.postRender();
+				}
             }
         });
 
@@ -60,6 +62,8 @@ module.exports = View.extend({
 
         // mark the correct nav item selected
         this.updateActiveNav();
+
+		this.updateBootstrapUi();
     },
 
     // Handles all `<a>` clicks in the app not handled
@@ -91,5 +95,51 @@ module.exports = View.extend({
                 dom.removeClass(aTag.parentNode, 'active');
             }
         });
-    }
+    },
+	updateBootstrapUi: function () {
+		var lookUp = document.getElementsByTagName('*');
+
+		var dataAttributes = {
+			Affix: 'data-spy',
+			ScrollSpy: 'data-spy',
+			Carousel: 'data-ride',
+			Alert: 'data-dismiss',
+			Button: 'data-toggle',
+			Collapse: 'data-toggle',
+			Dropdown: 'data-toggle',
+			Modal: 'data-toggle',
+			Popover: 'data-toggle',
+			Tab: 'data-toggle',
+			Tooltip: 'data-toggle'
+		};
+
+		var customizer = function(objValue, srcValue, key, object, source) {
+			if (_.isArray(objValue)) {
+				objValue.push(srcValue);
+				return objValue;
+			} else {
+				if (!objValue) {
+					return [srcValue];
+				} else {
+					return [objValue, srcValue];
+				}
+			}
+		};
+
+		var munger = _.partialRight(_.assign, customizer);
+		var newComp = munger({}, app.bootstrapComponents, dataAttributes);
+
+		_.forOwn(newComp,
+			function(value, key) {
+				for (var i=0; i < lookUp.length; i++) {
+					var attrValue = lookUp[i].getAttribute(value[1]);
+					var expectedAttrValue = key.replace(/spy/i,'').toLowerCase();
+					if ( attrValue && key === 'Button' && ( attrValue.indexOf(expectedAttrValue) > -1 ) // data-toggle="buttons"
+						|| attrValue === expectedAttrValue ) { // all other components
+						new value[0](lookUp[i]);
+					}
+				}
+			}
+		);
+	}
 });

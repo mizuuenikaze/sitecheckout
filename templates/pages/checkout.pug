@@ -1,16 +1,21 @@
 section.page.home
   //- grid content
   div.container
+    div.alert.alert-danger.hidden(role="alert")
+      span.glyphicon.glyphicon-exclamation-sign(aria-hidden="true")
+      span.sr-only Error:
+
+  div.container
     div.row
-      div.col-sm-4
+      div.col-sm-8
         div.panel.panel-primary
           div.panel-heading
             h3.panel-title checkout methods
           div.panel-body
             p
-              button.btn.btn-lg.btn-default(type="button") Ad-hoc Paypal
+              button.btn.btn-lg.btn-default(type="button" data-hook="paywithpaypal") Ad-hoc Paypal
             p
-              button.btn.btn-lg.btn-default(type="button") Ad-hoc Stripe
+              button.btn.btn-lg.btn-default(type="button" data-hook="paywithstripe") Ad-hoc Stripe
 
       div.col-sm-4
         picture
@@ -18,17 +23,33 @@ section.page.home
           source(data-srcset="/images/rocks_150w.jpg 150w, /images/rocks_300w.jpg 300w" media="--medium")
           source(data-srcset="/images/rocks_300w.jpg 300w")
           img.lazyload(data-src="holder.js/75px56p?theme=custom&font=Glyphicons Halflings&text=%EE%81%86&auto=yes" data-sizes="auto")
+    div.row.hidden.flow-paypal
+      div.col-sm-8
+        div#flowPaypal.panel-group(role="tablist" aria-multiselectable="true")
+          div.panel.panel-default
+            div#stepOneHeading.panel-heading(role="tab")
+              h4.panel-title
+                a.collapsed(data-hook="stepOne" role="button" data-toggle="collapse" data-parent="#flowPaypal" href="#stepOne" aria-expanded="false" aria-controls="stepOne") Step One
+            div#stepOne.panel-collapse.collapse(roles="tabpanel" aria-labelledby="stepOneHeading")
+              div.panel-body
+                form(data-hook="paypal-express-form")
+                  fieldset(data-hook="field-container")
+                  div.buttons
+                    button.btn(data-hook="reset" type="submit") Continue
+          div.panel.panel-default
+            div#stepTwoHeading.panel-heading(role="tab")
+              h4.panel-title
+                a.collapsed(data-hook="stepTwo" role="button" data-toggle="collapse" data-parent="#flowPaypal" href="#stepTwo" aria-expanded="false" aria-controls="stepTwo") Step Two
+            div#stepTwo.panel-collapse.collapse(roles="tabpanel" aria-labelledby="stepTwoHeading")
+              div.panel-body
+                div#pp-button-container(data-hook="pp-button-container")
+                div
+                  span.glyphicon.glyphicon-send
       div.col-sm-4
-        picture
-          source(data-srcset="/images/dogmassage_64w.jpg 64w, /images/dogmassage_150w.jpg 150w" media="--small")
-          source(data-srcset="/images/dogmassage_150w.jpg 150w, /images/dogmassage_300w.jpg 300w" media="--medium")
-          source(data-srcset="/images/dogmassage_300w.jpg 300w")
-          img.lazyload(data-src="holder.js/75px56p?theme=custom&font=Glyphicons Halflings&text=%EE%81%86&auto=yes" data-sizes="auto")
-    div.row.flow-paypal
-      div.col-sm-4
-        div.flow-step1 form here
-      div.col-sm-4
-        div.flow-step2 button here
-      div.col-sm-4
-        div.flow-step3 confirmation here
-        
+        span.glyphicon.glyphicon-piggy-bank(aria-hidden="true")
+
+    div.row.hidden.flow-stripe
+      div.col-sm-8
+        span.glyphicon.glyphicon-piggy-bank(aria-hidden="true")
+      div.col-sm4
+        span.glyphicon.glyphicon-piggy-bank(aria-hidden="true")

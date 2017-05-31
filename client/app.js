@@ -4,10 +4,10 @@ var config = require('clientconfig');
 var Router = require('./router');
 var MainView = require('./views/main');
 var Me = require('./models/me');
+var Payment = require('./models/payment');
 var domReady = require('domready');
 var browser = require('detect-browser');
 var scriptLoad = require('scriptloader');
-var xhr = require('xhr');
 
 // Defer lazysizes
 window.lazySizesConfig = window.lazySizesConfig || {};
@@ -26,9 +26,12 @@ window.app = app;
 // Extends our main app singleton
 app.extend({
 	contextPath: window.location.pathname.match(/(\/[^\/]+){1}/, '')[0] + '/',
-    me: new Me(),
+    me: new Me({STORAGE_KEY: 'mukuser_v1'}),
+	payment: new Payment({STORAGE_KEY: 'mukpayment__v1'}),
 	apiBaseUri: config.apiUrl,
+	debugMode: config.debugMode,
     router: new Router(),
+	boostrapComponents: {},
     // This is where it all starts
     init: function() {
 
@@ -55,7 +58,7 @@ app.extend({
     },
 	configureAjax: function () {
 		var useXDR = /IE/.test(browser.name);
-		var headers = {Accept: 'application/json'};
+		var headers = {'Accept': 'application/json'};
 		var xhrFields = {withCredentials: false};
 
 		if (this.me.token !== '') {
@@ -65,16 +68,54 @@ app.extend({
 
 		return { useXDR: useXDR, headers: headers, xhrFields: xhrFields };
 	},
-	reInitModules: function() {
-		// refresh bootstrap objects
-		var bootstrapNativeInit = require('bootstrap.native');
+	configureFetch: function () {
+		var headers = new Headers();
+		var url = new URL(window.location.href);
+		var method = 'get';
+		var mode = 'same-origin';
+		var credentials = 'same-origin';
+		var redirect = 'error';
 
-		// check for new placeholders
-		//window.Holder.run();
+		if (this.apiBaseUri !== url.origin) {
+			mode = 'cors';
+			credentials = 'include';
+		}
+		
+		headers.append('Accept', 'application/json');
+		headers.append('Content-Type', 'application/json');
+
+		if (this.me.token !== '') {
+			headers.append('Authorization', 'Bearer ' + this.me.token);
+		}
+
+		return {method: method, mode: mode, redirect: redirect, credentials: credentials, headers: headers};
+	},
+	fetchMerge : function (options, headers) {
+		var conf = this.configureFetch();
+
+		if (headers) {
+			_.forOwn(headers, function (value, key) {
+				conf.headers.set(key, value);
+			});
+		}
+
+		return _.merge(conf, options);
+	},
+	reInitModules: function() {
+		if (window.Holder) {
+			window.Holder.run();
+		}
+	},
+	thirdPartyWait: function () {
+		if (!window.paypal) {
+			setTimeout(this.thirdPartyWait, 100);
+			return;
+		}
+
+		this.trigger('externalReady');
 	},
 	injectScripts: function() {
-		// can't take advantage of cdn in this case.  Must be used in required fashion
-		//scriptLoad(document, 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.10/bootstrap-native.js');
+		this.bootstrapComponents = require('bootstrap.native');
 		
 		var thisApp = this;
 		var hjs = document.getElementById('hjs');
@@ -96,30 +137,8 @@ app.extend({
 			scriptLoad(document,
 				'https://www.paypalobjects.com/api/checkout.js',
 				function (err, scriptElement) {
-					scriptElement.id = 'paypal');
-
-					var paypalButtonContainer = document.getElementById('pp-button-container');
-					if (paypalButtonContainer) {
-						window.paypal.Button.render({
-							env: config.debugMode ? 'sandbox' : 'production',
-							commit: true,
-							payment: function() {
-								return new window.paypal.Promise(function(resolve, reject) {
-								var superConfig = thisApp.configAjax();
-								var requestOptions = _.assign({}, superConfig.xhrFields, {
-									useXDR: superConfig.useXDR,
-									headers: superConfig.headers,
-									json: true,
-									
-									}
-									xhr.post(thisApp.apiBaseUri + '/payment', {
-
-							},
-							onAuthorize: function(data, actions) {
-
-							}
-						}, paypalButtonContainer.id);
-					}
+					scriptElement.id = 'paypal';
+					thisApp.thirdPartyWait();
 				}
 			);
 		}

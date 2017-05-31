@@ -11,7 +11,7 @@ var serveStatic = require('serve-static');
 var stylizer = require('stylizer');
 var templatizer = require('puglatizer');
 var app = express();
-var contextPath = '/massage';
+var contextPath = '/checkout';
 
 // a little helper for fixing paths for various environments
 var fixPath = function (pathString) {
@@ -22,7 +22,7 @@ var fixPath = function (pathString) {
 // -----------------
 // Configure express
 // -----------------
-app.use(serveStatic(fixPath('public')));
+app.use(serveStatic(fixPath('../public')));
 
 // we only want to expose tests in dev
 if (config.isDev) {
@@ -88,8 +88,8 @@ var allLibraries = [];
 
 new Moonboots({
     moonboots: {
-        jsFileName: 'massage',
-        cssFileName: 'massage',
+        jsFileName: 'checkout',
+        cssFileName: 'checkout',
         main: fixPath('client/app.js'),
         developmentMode: config.isDev,
         libraries: allLibraries,

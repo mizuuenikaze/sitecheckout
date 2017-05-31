@@ -1,6 +1,21 @@
 section.page.login
-  h2 Login
-  form(data-hook="login-form")
-    fieldset(data-hoot="field-container")
-    .buttons
-      button.btn(data-hook="reset" type="submit") Submit
+  div.container
+    h2 Login
+    p(data-hook="messages")
+    form(data-hook="login-form")
+      fieldset(data-hook="field-container")
+      div.buttons
+        button.btn(data-hook="reset" type="submit") Submit
+
+  div.modal.fade(tabindex="-1" role="dialog" data-hook="approve")
+    div.modal-dialog(role="document")
+      div.modal-content
+        div.modal-header
+          button.close(type="button" data-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+          h4.modal-title Approval
+        div.modal-body
+          p Allow this application to access you user information?
+        div.modal-footer
+          button.btn.btn-default(type="button" data-dismiss="modal" data-hook="deny") Cancel
+          button.btn.btn-primary(type="button" data-hook="confirm") Allow
