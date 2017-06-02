@@ -15,6 +15,8 @@ module.exports = FormView.extend({
                 value: this.model && this.model.username,
                 required: true,
                 placeholder: 'Username',
+				autofocus: true,
+				tabindex: 1,
                 parent: this
             }),
             new ExtendedInput({
@@ -24,6 +26,7 @@ module.exports = FormView.extend({
 				type: 'password',
                 required: true,
                 placeholder: 'Password',
+				tabindex: 2,
                 parent: this
             })
         ];

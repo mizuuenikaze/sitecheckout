@@ -6,6 +6,10 @@ var View = require('ampersand-view');
 
 
 module.exports = View.extend({
+	// common view properties
+	props: {
+		errorMessage: 'string'
+	},
     // register keyboard handlers
     registerKeyboardShortcuts: function() {
         /*

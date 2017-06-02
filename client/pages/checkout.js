@@ -2,6 +2,7 @@ var dom = require('ampersand-dom');
 var PageView = require('./base');
 var templates = require('../templates');
 var PayPalExpressForm = require('../forms/payPalExpressForm');
+var PayPalExpressConfirm = require('../forms/payPalExpressConfirm');
 var app = require('ampersand-app');
 
 
@@ -13,7 +14,7 @@ module.exports = PageView.extend({
 		'click [data-hook=paywithstripe]': 'flowStripe'
 	},
 	bindings: {
-		'model.errorMessage': [{
+		'errorMessage': [{
 			type: 'text',
 			hook: 'error-message'
 		},{
@@ -25,8 +26,22 @@ module.exports = PageView.extend({
 	},
 	initialize: function () {
 		this.listenTo(app, 'externalReady', this.paypalButtonRender);
+
+		// always start with a clean model
+		this.model.unset('service');
+		this.model.unset('price');
+		this.model.unset('committedPayment');
+		this.model.unset('paymentMethod');
+		this.model.unset('paymentId');
+		this.model.unset('payerId');
+		this.model.unset('currentStep');
 	},
 	flowPayPal: function () {
+		if (this.model.currentStep !== 'start') {
+			this.errorMessage = 'The current flow will be abandoned...';
+			setTimeout(this.newFlow, 500);
+		}
+
 		dom.addClass(this.query('.flow-paypal'), 'show');
 		dom.removeClass(this.query('.flow-paypal'), 'hidden');
 		dom.addClass(this.query('.flow-stripe'), 'hidden');
@@ -34,6 +49,12 @@ module.exports = PageView.extend({
 		this.queryByHook('stepOne').Collapse.show();
 	},
 	flowStripe: function () {
+		if (this.model.currentStep !== 'start') {
+			this.newFlow();
+		}
+	},
+	newFlow: function () {
+		app.router.reload();
 	},
 	nextStep: function () {
 		this.queryByHook(this.model.currentStep).Collapse.show();
@@ -55,6 +76,20 @@ module.exports = PageView.extend({
 					}
 				});
 			}
+		},
+		payPalExpressConfirm: {
+			hook: 'paypal-express-confirm',
+			waitFor: 'model.committedPayment',
+			prepareView: function (el) {
+				return new PayPalExpressConfirm({
+					el: el,
+					model: this.model,
+					submitCallback: function (data) {
+						//clear this payment and go to step 1
+						this.parent.newFlow();
+					}
+				});
+			}
 		}
 	},
 	postRender: function () {
@@ -71,40 +106,78 @@ module.exports = PageView.extend({
 			}
 
 			var model = this.model;
+			var view = this;
 			window.paypal.Button.render({
 				env: app.debugMode ? 'sandbox' : 'production',
 				commit: true,
 				payment: function() {
-					return window.fetch(app.apiBaseUri + '/v1/payments',
+					if (model.currentStep !== 'end') {
+						return window.fetch(app.apiBaseUri + '/v1/payments',
+							app.fetchMerge({
+								method: 'POST',
+								body: JSON.stringify(model)
+							})
+						).then(function (response) {
+							if (response.ok) {
+								if (response.headers.has('X-MUK-REFRESH-TOKEN')) {
+									app.me.token = response.headers.get('X-MUK-REFRESH-TOKEN');
+								}
+								return response.json();
+							} else if (response.status === 401) {
+								app.me.token = '';
+								app.router.redirectTo(app.contextPath + 'login');
+							} else {
+								throw new Error('Unexpected status: ' + response.status);
+							}
+						}).then(function (body) {
+							if (body.state && body.state === 'created') {
+								return body.paymentId;
+							} else {
+								throw new Error('Invalid State: ' + body.state);
+							}
+						}).catch(function (error) {
+							view.errorMessage = error.message;
+						});
+					} else {
+						return Promise.reject(new Error('This checkout is done.')).catch(function(error) {
+							view.errorMessage = error.message;
+						});
+					}
+				},
+				onAuthorize: function(data, actions) {
+					return window.fetch(app.apiBaseUri + '/v1/payments/' + data.paymentID,
 						app.fetchMerge({
-							method: 'post',
-							body: JSON.stringify(model)
+							method: 'PATCH',
+							body: JSON.stringify({
+								stateChange: 'execute',
+								pathChanges: [
+									['.paymentMethod', '"' + model.paymentMethod + '"'],
+									['.payerId', '"' + data.payerID + '"']
+								]
+							}),
 						})
 					).then(function (response) {
 						if (response.ok) {
 							if (response.headers.has('X-MUK-REFRESH-TOKEN')) {
 								app.me.token = response.headers.get('X-MUK-REFRESH-TOKEN');
 							}
-							return response.json();
-						} else if (response.status === 401) {
-							app.me.token = '';
-							app.router.redirectTo(app.contextPath + 'login');
+
+							model.currentStep = "end";
+							model.committedPayment = {service: 'future api call for payment', price: 9.99};
+							view.errorMessage = "Thanks! This checkout is done."
+							view.nextStep();
 						} else {
-							throw new Error('Unexpected status: ' + response.status);
-						}
-					}).then(function (body) {
-						if (body.state && body.state === 'created') {
-							return body.paymentId;
-						} else {
-							throw new Error('Invalid State: ' + body.state);
+							var message = '' + response.status + ': ';
+							var body = response.json();
+							if (body) {
+								message += body.message;
+							}
+
+							throw new Error('Unexpected status: ' + message);
 						}
 					}).catch(function (error) {
-						model.errorMessage = error.message;
+						view.errorMessage = error.message;
 					});
-				},
-				onAuthorize: function(data, actions) {
-					console.log('authorized');
-
 				}
 			}, '#' + paypalButtonContainer.id);
 		}

@@ -1,7 +1,7 @@
 section.page.home
   //- grid content
   div.container
-    div.alert.alert-danger.hidden(role="alert")
+    div.alert.alert-danger.hidden(role="alert" data-hook="error-message")
       span.glyphicon.glyphicon-exclamation-sign(aria-hidden="true")
       span.sr-only Error:
 
@@ -29,7 +29,7 @@ section.page.home
           div.panel.panel-default
             div#stepOneHeading.panel-heading(role="tab")
               h4.panel-title
-                a.collapsed(data-hook="stepOne" role="button" data-toggle="collapse" data-parent="#flowPaypal" href="#stepOne" aria-expanded="false" aria-controls="stepOne") Step One
+                a.collapsed(data-hook="stepOne checkoutStep" role="button" data-toggle="collapse" data-parent="#flowPaypal" href="#stepOne" aria-expanded="false" aria-controls="stepOne") Step One
             div#stepOne.panel-collapse.collapse(roles="tabpanel" aria-labelledby="stepOneHeading")
               div.panel-body
                 form(data-hook="paypal-express-form")
@@ -39,12 +39,23 @@ section.page.home
           div.panel.panel-default
             div#stepTwoHeading.panel-heading(role="tab")
               h4.panel-title
-                a.collapsed(data-hook="stepTwo" role="button" data-toggle="collapse" data-parent="#flowPaypal" href="#stepTwo" aria-expanded="false" aria-controls="stepTwo") Step Two
+                a.collapsed(data-hook="stepTwo checkoutStep" role="button" data-toggle="collapse" data-parent="#flowPaypal" href="#stepTwo" aria-expanded="false" aria-controls="stepTwo") Step Two
             div#stepTwo.panel-collapse.collapse(roles="tabpanel" aria-labelledby="stepTwoHeading")
               div.panel-body
                 div#pp-button-container(data-hook="pp-button-container")
                 div
                   span.glyphicon.glyphicon-send
+          div.panel.panel-default
+            div#endHeading.panel-heading(role="tab")
+              h4.panel-title
+                a.collapsed(data-hook="end checkoutStep" role="button" data-toggle="collapse" data-parent="#flowPaypal" href="#end" aria-expanded="false" aria-controls="end") Final Payment Info
+            div#end.panel-collapse.collapse(roles="tabpanel" aria-labelledby="endHeading")
+              div.panel-body
+                form(data-hook="paypal-express-confirm")
+                  fieldset(data-hook="field-container")
+                  div.buttons
+                    button.btn(data-hook="reset" type="submit") Done
+
       div.col-sm-4
         span.glyphicon.glyphicon-piggy-bank(aria-hidden="true")
 

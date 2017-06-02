@@ -27,7 +27,7 @@ window.app = app;
 app.extend({
 	contextPath: window.location.pathname.match(/(\/[^\/]+){1}/, '')[0] + '/',
     me: new Me({STORAGE_KEY: 'mukuser_v1'}),
-	payment: new Payment({STORAGE_KEY: 'mukpayment__v1'}),
+	payment: new Payment({STORAGE_KEY: 'mukpayment_v1'}),
 	apiBaseUri: config.apiUrl,
 	debugMode: config.debugMode,
     router: new Router(),
@@ -71,7 +71,7 @@ app.extend({
 	configureFetch: function () {
 		var headers = new Headers();
 		var url = new URL(window.location.href);
-		var method = 'get';
+		var method = 'GET';
 		var mode = 'same-origin';
 		var credentials = 'same-origin';
 		var redirect = 'error';
