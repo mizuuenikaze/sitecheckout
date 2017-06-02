@@ -1,4 +1,4 @@
-# WindUponTheWater Massage
+# WindUponTheWater Checkout
 
 This app was generated with the [ampersand cli tool](http://ampersandjs.com/learn/quick-start-guide).
 
@@ -7,7 +7,7 @@ This app was generated with the [ampersand cli tool](http://ampersandjs.com/lear
 1. Upgraded bootstrap
 1. pm2 launch and monitoring
 
-This is a simple content site.  The backends
+This is a simple checkout flow for paypal and stripe.  The backends
 are separate projects that provide distinct restful apis.  Final deployments into a webserver to deliver the client apps remove the need for express and fake apis that are in this project for development and testing.
 
 ## Production build
