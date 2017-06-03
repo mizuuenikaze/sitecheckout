@@ -27,8 +27,8 @@ NODE_ENV = development
 all-local: client/templates.js pm2
 else
 NODE_ENV = production
-massagedir = $(prefix)/massage
-massage_DATA = artifacts/portal.js artifacts/theme.css
+checkoutdir = $(prefix)/checkout
+checkout_DATA = artifacts/portal.js artifacts/theme.css
 all-local: artifacts/portal.js artifacts/theme.css
 endif
 
