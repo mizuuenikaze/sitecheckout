@@ -1,6 +1,7 @@
 /*global $*/
 // base view for pages
 var View = require('ampersand-view');
+var app = require('ampersand-app');
 //var _ = require('lodash');
 //var key = require('keymaster');
 
@@ -9,6 +10,17 @@ module.exports = View.extend({
 	// common view properties
 	props: {
 		errorMessage: 'string'
+	},
+	bindings: {
+		'errorMessage': [{
+			type: 'text',
+			hook: 'error-message'
+		},{
+			type: 'booleanClass',
+			hook: 'error-message',
+			yes: 'show',
+			no: 'hidden'
+		}]
 	},
     // register keyboard handlers
     registerKeyboardShortcuts: function() {
@@ -25,6 +37,6 @@ module.exports = View.extend({
         //key.deleteScope(this.cid);
     },
 	postRender: function() {
-		//noop
+		return app.thirdPartyWait();
 	}
 });

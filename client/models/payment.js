@@ -16,7 +16,8 @@ module.exports = AmpersandModel.extend({
 		service: ['string', true, ''],
 		price: ['number', true, 0],
 		paymentId: ['string', false, ''],
-		payerId: ['string', false, '']
+		payerId: ['string', false, ''],
+		info: ['string', false, '']
 	},
 	session: {
 		committedPayment: 'object'

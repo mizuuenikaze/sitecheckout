@@ -52,7 +52,6 @@ module.exports = View.extend({
 
         // setting a favicon for fun (note, it's dynamic)
         setFavicon('/favicon_m.ico');
-		app.injectScripts();
         return this;
     },
 
@@ -63,7 +62,7 @@ module.exports = View.extend({
         // mark the correct nav item selected
         this.updateActiveNav();
 
-		this.updateBootstrapUi();
+		this.updateBootstrapUi(this.el);
     },
 
     // Handles all `<a>` clicks in the app not handled
@@ -96,8 +95,8 @@ module.exports = View.extend({
             }
         });
     },
-	updateBootstrapUi: function () {
-		var lookUp = document.getElementsByTagName('*');
+	updateBootstrapUi: function (root) {
+		var lookUp = root.getElementsByTagName('*');
 
 		var dataAttributes = {
 			Affix: 'data-spy',

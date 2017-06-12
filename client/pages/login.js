@@ -24,6 +24,12 @@ module.exports = PageView.extend({
 		'click [data-hook=confirm]': 'confirmApproval',
 		'click [data-hook=deny]': 'denyApproval',
 	},
+	initialize: function () {
+		this.listenTo(app, 'externalReady', this.setupModal);
+	},
+	setupModal: function () {
+		this.approveModal = new app.bootstrapComponents.Modal(this.queryByHook('approve'),{backdrop: 'static'});
+	},
 	confirmApproval: function () {
 		var view = this;
 		_.map(this.model.hateoas, function (link) {
@@ -34,9 +40,11 @@ module.exports = PageView.extend({
 					method: 'get'
 				}), function (err, response, body) {
 					if (err) {
-						view.queryByHook('messages').textContent = response.status + ": " + err.message;
+						view.errorMessage = err.message;
+					} if (response.statusCode > 299) {
+						view.errorMessage = response.status + ": " + body.message;
 					} else {
-						this.authenticateUser(body);
+						view.authenticateUser(body);
 					}
 				});
 			}
@@ -52,7 +60,7 @@ module.exports = PageView.extend({
 					method: 'get'
 				}), function (err, response, body) {
 					if (err) {
-						view.queryByHook('messages').textContent = response.status + ": " + err.message;
+						view.errorMessage = err.message;
 					}
 				});
 			}
@@ -60,6 +68,7 @@ module.exports = PageView.extend({
 	},
 	authenticateUser: function (userInfo) {
 		this.model.set(userInfo);
+		this.approveModal.hide();
 		app.navigate(app.contextPath);
 	},
 	subviews: {
@@ -82,12 +91,13 @@ module.exports = PageView.extend({
 							json: data
 						}), function (err, response, body) {
 							if (err) {
-								alert(err.message);
+								parentView.errorMessage = err.message;
 							} else {
-								if (body.links) {
+								if (response.statusCode > 299) {
+									parentView.errorMessage = response.statusCode + ': ' + body.message;
+								} else if (body.links) {
 									parentModel.hateoas = body.links;
-									var modalInstance = new app.bootstrapComponents.Modal(parentView.queryByHook('approve'),{backdrop: 'static'});
-									modalInstance.show();
+									parentView.approveModal.show();
 								} else {
 									parentView.authenticateUser(body);
 								}

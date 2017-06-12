@@ -7,7 +7,7 @@ module.exports = Router.extend({
     routes: {
         'checkout/': 'home',
         'checkout/login': 'login',
-        '(*path)': 'catchAll'
+        'checkout/(*path)': 'catchAll'
     },
 
     // ------- ROUTE HANDLERS ---------
@@ -17,7 +17,9 @@ module.exports = Router.extend({
 				model: app.payment
 			}));
 		} else {
-			app.navigate(app.contextPath + 'login');
+			this.navigate(app.contextPath + 'login', {trigger: false});
+			this.login();
+			return false;
 		}
 	},
 	login: function () {

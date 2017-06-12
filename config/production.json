@@ -13,7 +13,8 @@
         "port": 8282
     },
     "client": {
-        "apiUrl": "https://www.winduponthewater.com/api",
+        "apiUrl": "https://domain/api",
         "debugMode": false
+		"stripe": "?"
     }
 }

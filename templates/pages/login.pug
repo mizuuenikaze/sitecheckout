@@ -1,7 +1,9 @@
 section.page.login
   div.container
     h2 Login
-    p(data-hook="messages")
+    div.alert.alert-danger.hidden(role="alert" data-hook="error-message")
+      span.glyphicon.glyphicon-exclamation-sign(aria-hidden="true")
+      span.sr-only Error:
     form(data-hook="login-form")
       fieldset(data-hook="field-container")
       div.buttons

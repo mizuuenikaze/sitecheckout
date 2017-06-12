@@ -28,6 +28,7 @@ app.extend({
 	contextPath: window.location.pathname.match(/(\/[^\/]+){1}/, '')[0] + '/',
     me: new Me({STORAGE_KEY: 'mukuser_v1'}),
 	payment: new Payment({STORAGE_KEY: 'mukpayment_v1'}),
+	stripeKey: config.stripe,
 	apiBaseUri: config.apiUrl,
 	debugMode: config.debugMode,
     router: new Router(),
@@ -107,19 +108,28 @@ app.extend({
 		}
 	},
 	thirdPartyWait: function () {
-		if (!window.paypal) {
-			setTimeout(this.thirdPartyWait, 100);
+		if (this.injectScripts) {
+			this.injectScripts();
+		}
+
+		if (!window.paypal || !window.Stripe) {
+			setTimeout(window.app.thirdPartyWait, 100);
 			return;
 		}
 
-		this.trigger('externalReady');
+		window.app.trigger('externalReady');
 	},
 	injectScripts: function() {
+		if (this.scriptsInjected) {
+			return;
+		}
+
 		this.bootstrapComponents = require('bootstrap.native');
 		
 		var thisApp = this;
 		var hjs = document.getElementById('hjs');
 		var paypal = document.getElementById('paypal');
+		var stripe = document.getElementById('stripe');
 
 		if (!hjs) {
 			scriptLoad(document,
@@ -138,10 +148,20 @@ app.extend({
 				'https://www.paypalobjects.com/api/checkout.js',
 				function (err, scriptElement) {
 					scriptElement.id = 'paypal';
-					thisApp.thirdPartyWait();
 				}
 			);
 		}
+		
+		if (!stripe) {
+			scriptLoad(document,
+				'https://js.stripe.com/v3/',
+				function (err, scriptElement) {
+					scriptElement.id = 'stripe';
+				}
+			);
+		}
+
+		this.scriptsInjected = true;
 	}
 });
 
