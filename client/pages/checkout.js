@@ -26,7 +26,7 @@ module.exports = PageView.extend({
 		this.model.unset('payerId');
 		this.model.unset('currentStep');
 	},
-	render : function () {
+	render: function () {
 		this.renderWithTemplate(this);
 		this.paymentFlow = new ViewSwitcher(this.queryByHook('paymentFlow'), {
 			show: function (newView) {
@@ -60,7 +60,5 @@ module.exports = PageView.extend({
 	setupPaymentTypes: function () {
 		dom.removeAttribute(this.queryByHook('paywithpaypal'), 'disabled');
 		dom.removeAttribute(this.queryByHook('paywithstripe'), 'disabled');
-	},
-	stripeFormRender() {
 	}
 });
