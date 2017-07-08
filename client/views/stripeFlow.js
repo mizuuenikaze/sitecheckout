@@ -7,7 +7,7 @@ var app = require('ampersand-app');
 
 
 module.exports = PaymentFlowView.extend({
-    template: templates.includes.stripeFlow,
+	template: templates.includes.stripeFlow,
 	events: {
 		'click [data-hook=stripebutton]': 'payment'
 	},
@@ -79,17 +79,16 @@ module.exports = PaymentFlowView.extend({
 					method: 'POST',
 					body: JSON.stringify(this.model)
 				})
-			).then(view.handlePayments
+			).then(app.peelFetchResponse
 			).then(view.handlePaymentsResponse
 			).then(function (paymentId) {
 				model.currentStep = 'end';
 				model.committedPayment = {service: 'future api call for payment', price: 9.99};
 				app.currentPage.errorMessage = 'Thanks! This checkout is done.'
 				app.currentPage.nextStep();
-			}).catch(view.handleError);
+			}).catch(app.handleError);
 		} else {
-			return Promise.reject(new Error('This checkout is done.')).catch(view.handleError);
+			return Promise.reject(new Error('This checkout is done.')).catch(app.handleError);
 		}
 	}
 });
-

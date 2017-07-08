@@ -56,13 +56,21 @@ module.exports = View.extend({
     },
 
     handleNewPage: function (view) {
-        // tell the view switcher to render the new one
-        this.pageSwitcher.set(view);
+		view.cmsFetch({
+			mainView: this,
+			pageView: view,
+			success: function (model, response, options) {
+				// tell the view switcher to render the new one
+				options.mainView.pageSwitcher.set(options.pageView);
 
-        // mark the correct nav item selected
-        this.updateActiveNav();
-
-		this.updateBootstrapUi(this.el);
+				// mark the correct nav item selected
+				options.mainView.updateActiveNav();
+				options.mainView.updateBootstrapUi(options.mainView.el);
+			},
+			error: function (model, response, options) {
+				options.pageView.errorMessage = response.message;
+			}
+		});
     },
 
     // Handles all `<a>` clicks in the app not handled
@@ -125,7 +133,7 @@ module.exports = View.extend({
 			}
 		};
 
-		var munger = _.partialRight(_.assign, customizer);
+		var munger = _.partialRight(_.assignWith, customizer);
 		var newComp = munger({}, app.bootstrapComponents, dataAttributes);
 
 		_.forOwn(newComp,

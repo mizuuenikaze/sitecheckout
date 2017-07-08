@@ -4,17 +4,17 @@ var CheckoutPage = require('./pages/checkout');
 var LoginPage = require('./pages/login');
 
 module.exports = Router.extend({
-    routes: {
-        'checkout/': 'home',
-        'checkout/login': 'login',
-        'checkout/(*path)': 'catchAll'
-    },
+	routes: {
+		'checkout/': 'home',
+		'checkout/login': 'login',
+		'(*path)': 'catchAll'
+	},
 
-    // ------- ROUTE HANDLERS ---------
-    home: function () {
-		if (app.me.token !== '') {
+	// ------- ROUTE HANDLERS ---------
+	home: function () {
+		if (app.pageContext.me.token !== '') {
 			app.trigger('page', new CheckoutPage({
-				model: app.payment
+				model: app.pageContext
 			}));
 		} else {
 			this.navigate(app.contextPath + 'login', {trigger: false});
@@ -24,12 +24,12 @@ module.exports = Router.extend({
 	},
 	login: function () {
 		app.trigger('page', new LoginPage({
-			model: app.me
+			model: app.pageContext
 		}));
 	},
 
     catchAll: function () {
-		if (app.me.token !== '') {
+		if (app.pageContext.me.token !== '') {
         	this.redirectTo(app.contextPath + 'login');
 		} else {
 			this.redirectTo(app.contextPath + '');

@@ -3,8 +3,7 @@ var _ = require('lodash');
 var config = require('clientconfig');
 var Router = require('./router');
 var MainView = require('./views/main');
-var Me = require('./models/me');
-var Payment = require('./models/payment');
+var PageContext = require('./models/pageContext');
 var domReady = require('domready');
 var browser = require('detect-browser');
 var scriptLoad = require('scriptloader');
@@ -26,44 +25,43 @@ window.app = app;
 // Extends our main app singleton
 app.extend({
 	contextPath: window.location.pathname.match(/(\/[^\/]+){1}/, '')[0] + '/',
-    me: new Me({STORAGE_KEY: 'mukuser_v1'}),
-	payment: new Payment({STORAGE_KEY: 'mukpayment_v1'}),
 	stripeKey: config.stripe,
 	apiBaseUri: config.apiUrl,
 	debugMode: config.debugMode,
-    router: new Router(),
-	boostrapComponents: {},
-    // This is where it all starts
-    init: function() {
+	router: new Router(),
+	bootstrapComponents: {},
+	// This is where it all starts
+	init: function() {
+		this.pageContext = new PageContext();
 
-        // Create and attach our main view
-        this.mainView = new MainView({
-            model: this.me,
-            el: document.body
-        });
+		// Create and attach our main view
+		this.mainView = new MainView({
+			model: this.me,
+			el: document.body
+		});
 
-        // this kicks off our backbutton tracking (browser history)
-        // and will cause the first matching handler in the router
-        // to fire.
-        this.router.history.start([{ pushState: true},{root: this.contextPath}]);
-    },
-    // This is a helper for navigating around the app.
-    // this gets called by a global click handler that handles
-    // all the <a> tags in the app.
-    // it expects a url pathname for example: "/costello/settings"
-    navigate: function(page) {
-        var url = (page.charAt(0) === '/') ? page.slice(1) : page;
-        this.router.history.navigate(url, {
-            trigger: true
-        });
-    },
+		// this kicks off our backbutton tracking (browser history)
+		// and will cause the first matching handler in the router
+		// to fire.
+		this.router.history.start([{ pushState: true},{root: this.contextPath}]);
+	},
+	// This is a helper for navigating around the app.
+	// this gets called by a global click handler that handles
+	// all the <a> tags in the app.
+	// it expects a url pathname for example: "/costello/settings"
+	navigate: function(page) {
+		var url = (page.charAt(0) === '/') ? page.slice(1) : page;
+		this.router.history.navigate(url, {
+			trigger: true
+		});
+	},
 	configureAjax: function () {
 		var useXDR = /IE/.test(browser.name);
 		var headers = {'Accept': 'application/json'};
 		var xhrFields = {withCredentials: false};
 
-		if (this.me.token !== '') {
-			headers.Authorization = 'Bearer ' + this.me.token;
+		if (this.pageContext.me.token !== '') {
+			headers.Authorization = 'Bearer ' + this.pageContext.me.token;
 			xhrFields.withCredentials = true;
 		}
 
@@ -85,13 +83,13 @@ app.extend({
 		headers.append('Accept', 'application/json');
 		headers.append('Content-Type', 'application/json');
 
-		if (this.me.token !== '') {
-			headers.append('Authorization', 'Bearer ' + this.me.token);
+		if (this.pageContext.me.token !== '') {
+			headers.append('Authorization', 'Bearer ' + this.pageContext.me.token);
 		}
 
 		return {method: method, mode: mode, redirect: redirect, credentials: credentials, headers: headers};
 	},
-	fetchMerge : function (options, headers) {
+	fetchMerge: function (options, headers) {
 		var conf = this.configureFetch();
 
 		if (headers) {
@@ -102,7 +100,34 @@ app.extend({
 
 		return _.merge(conf, options);
 	},
-	reInitModules: function() {
+	peelFetchResponse: function (response) {
+		if (response.headers.has('X-MUK-REFRESH-TOKEN')) {
+			app.pageContext.me.token = response.headers.get('X-MUK-REFRESH-TOKEN');
+		}
+
+		if (response.ok) {
+			if (response.status === 204) {
+				return Promise.resolve({});
+			} else {
+				return response.json();
+			}
+		} else if (response.status === 401) {
+			app.pageContext.me.token = '';
+			app.router.redirectTo(app.contextPath + 'login');
+		} else {
+			return response.json().then(function (body) {
+				var message = '' + response.status + ': ';
+				if (body) {
+					message += body.message;
+				}
+				throw new Error('Unexpected status: ' + message);
+			});
+		}
+	},
+	handleError: function (error) {
+		app.currentPage.errorMessage = error.message;
+	},
+	reInitModules: function () {
 		if (window.Holder) {
 			window.Holder.run();
 		}

@@ -24,27 +24,11 @@ module.exports = View.extend({
 		// flow UIs are delayed so force a bootstrap update
 		app.mainView.updateBootstrapUi(this.el);
 	},
-	handlePayments: function (response) {
-		if (response.ok) {
-			if (response.headers.has('X-MUK-REFRESH-TOKEN')) {
-				app.me.token = response.headers.get('X-MUK-REFRESH-TOKEN');
-			}
-			return response.json();
-		} else if (response.status === 401) {
-			app.me.token = '';
-			app.router.redirectTo(app.contextPath + 'login');
-		} else {
-			throw new Error('Unexpected status: ' + response.status);
-		}
-	},
 	handlePaymentsResponse: function (body) {
 		if (body.state && body.state === 'created') {
 			return body.paymentId;
 		} else {
 			throw new Error('Invalid State: ' + body.state);
 		}
-	},
-	handleError: function (error) {
-		app.currentPage.errorMessage = error.message;
 	}
 });

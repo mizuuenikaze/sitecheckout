@@ -7,28 +7,28 @@ var ExtendedInput = InputView.extend({
 
 
 module.exports = FormView.extend({
-    fields: function () {
-        return [
-            new ExtendedInput({
-                label: 'Username',
-                name: 'username',
-                value: this.model && this.model.username,
-                required: true,
-                placeholder: 'Username',
+	fields: function () {
+		return [
+			new ExtendedInput({
+				label: 'Username',
+				name: 'username',
+				value: this.model && this.model.username,
+				required: true,
+				placeholder: 'Username',
 				autofocus: true,
 				tabindex: 1,
-                parent: this
-            }),
-            new ExtendedInput({
-                label: 'Password',
-                name: 'password',
-                value: this.model && this.model.password,
+				parent: this
+			}),
+			new ExtendedInput({
+				label: 'Password',
+				name: 'password',
+				value: this.model && this.model.password,
 				type: 'password',
-                required: true,
-                placeholder: 'Password',
+				required: true,
+				placeholder: 'Password',
 				tabindex: 2,
-                parent: this
-            })
-        ];
-    }
+				parent: this
+			})
+		];
+	}
 });
