@@ -1,5 +1,5 @@
 dnl Process this file with autoconf
-AC_INIT([sitecheckout], [1.1.1])
+AC_INIT([sitecheckout], [1.2.0])
 AC_PREREQ(2.69)
 AM_INIT_AUTOMAKE([foreign nostdinc])
 dnl Program checks

@@ -47,14 +47,6 @@ app.set('view engine', 'pug');
 // -----------------
 // Set up our little demo API
 // -----------------
-/*
-var api = require('./fakeApi');
-app.get('/api/features', api.list);
-app.get('/api/features/:id', api.get);
-app.delete('/api/features/:id', api.delete);
-app.put('/api/features/:id', api.update);
-app.post('/api/features', api.add);
-*/
 
 // -----------------
 // Enable the functional test site in development
@@ -121,7 +113,6 @@ new Moonboots({
             }
         }
     },
-	appPath: contextPath,
     server: app
 });
 

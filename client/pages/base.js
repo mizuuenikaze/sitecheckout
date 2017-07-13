@@ -22,6 +22,7 @@ module.exports = View.extend({
 			no: 'hidden'
 		}]
 	},
+	autoRender: false,
     // register keyboard handlers
     registerKeyboardShortcuts: function() {
         /*
@@ -38,5 +39,17 @@ module.exports = View.extend({
     },
 	postRender: function() {
 		return app.thirdPartyWait();
+	},
+	cmsFetch: function (options) {
+		if (this.cmsId) {
+			this.model.cms.clear();
+			this.model.cms.id = this.cmsId;
+			this.model.cms.fetch(options);
+		} else {
+			options.success(null, null, options);
+		}
+	},
+	handleError: function (error) {
+		app.currentPage.errorMessage = error.message;
 	}
 });

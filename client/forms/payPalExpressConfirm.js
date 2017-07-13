@@ -21,26 +21,26 @@ var ExtendedNumberInput = InputView.extend({
 
 
 module.exports = FormView.extend({
-    fields: function () {
-        return [
-            new ExtendedInput({
-                label: 'Service',
-                name: 'service',
-                value: this.model.committedPayment && this.model.committedPayment.service,
-                required: false,
+	fields: function () {
+		return [
+			new ExtendedInput({
+				label: 'Service',
+				name: 'service',
+				value: this.model.committedPayment && this.model.committedPayment.service,
+				required: false,
 				readonly: true,
-                parent: this
-            }),
-            new ExtendedNumberInput({
-                label: 'Price',
-                name: 'price',
-                value: this.model.committedPayment && this.model.committedPayment.price,
+				parent: this
+			}),
+			new ExtendedNumberInput({
+				label: 'Price',
+				name: 'price',
+				value: this.model.committedPayment && this.model.committedPayment.price,
 				type: 'number',
 				step: 'any',
 				readonly: true,
-                required: false,
-                parent: this
-            })
-        ];
-    }
+				required: false,
+				parent: this
+			})
+		];
+	}
 });

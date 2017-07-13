@@ -7,7 +7,7 @@ var app = require('ampersand-app');
 
 
 module.exports = PaymentFlowView.extend({
-    template: templates.includes.payPalFlow,
+	template: templates.includes.payPalFlow,
 	subviews: {
 		paymentForm: {
 			hook: 'payment-form',
@@ -54,11 +54,11 @@ module.exports = PaymentFlowView.extend({
 							method: 'POST',
 							body: JSON.stringify(model)
 						})
-					).then(view.handlePayments
+					).then(app.peelFetchResponse
 					).then(view.handlePaymentsResponse
-					).catch(view.handleError);
+					).catch(app.handleError);
 				} else {
-					return Promise.reject(new Error('This checkout is done.')).catch(view.handleError);
+					return Promise.reject(new Error('This checkout is done.')).catch(app.handleError);
 				}
 			},
 			onAuthorize: function(data, actions) {
@@ -73,28 +73,14 @@ module.exports = PaymentFlowView.extend({
 							]
 						}),
 					})
-				).then(function (response) {
-					if (response.ok) {
-						if (response.headers.has('X-MUK-REFRESH-TOKEN')) {
-							app.me.token = response.headers.get('X-MUK-REFRESH-TOKEN');
-						}
-
-						model.currentStep = 'end';
-						model.committedPayment = {service: 'future api call for payment', price: 9.99};
-						app.currentPage.errorMessage = 'Thanks! This checkout is done.'
-						app.currentPage.nextStep();
-					} else {
-						var message = '' + response.status + ': ';
-						var body = response.json();
-						if (body) {
-							message += body.message;
-						}
-
-						throw new Error('Unexpected status: ' + message);
-					}
-				}).catch(view.handleError);
+				).then(app.peelFetchResponse
+				).then(function (body) {
+					model.currentStep = 'end';
+					model.committedPayment = {service: 'future api call for payment', price: 9.99};
+					app.currentPage.errorMessage = 'Thanks! This checkout is done.';
+					app.currentPage.nextStep();
+				}).catch(app.handleError);
 			}
 		}, '#' + paypalButtonContainer.id);
 	}
 });
-
