@@ -68,7 +68,12 @@ module.exports = View.extend({
 				options.mainView.updateBootstrapUi(options.mainView.el);
 			},
 			error: function (model, response, options) {
-				options.pageView.errorMessage = response.message;
+				if (response.statusCode === 401) {
+					app.pageContext.me.token = '';
+					app.router.redirectTo(app.contextPath + 'login');
+				} else {
+					options.pageView.errorMessage = response.rawRequsest.responseText;
+				}
 			}
 		});
     },

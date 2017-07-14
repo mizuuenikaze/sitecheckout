@@ -176,6 +176,8 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BROWSERIFY = @BROWSERIFY@
+CLEANCSS = @CLEANCSS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 ECHO_C = @ECHO_C@
@@ -186,6 +188,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JQ = @JQ@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
@@ -199,10 +202,13 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PUGLATIZER = @PUGLATIZER@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+STYLUS = @STYLUS@
+UGLIFYJS = @UGLIFYJS@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -212,10 +218,8 @@ am__leading_dot = @am__leading_dot@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
-browserify = @browserify@
 build_alias = @build_alias@
 builddir = @builddir@
-cleancss = @cleancss@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -226,7 +230,6 @@ htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
-jq = @jq@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -238,17 +241,14 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-puglatizer = @puglatizer@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
-stylus = @stylus@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-uglifyjs = @uglifyjs@
 
 # Make does not offer a recursive wildcard function, so here's one:
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
@@ -610,20 +610,20 @@ uninstall-am: uninstall-checkoutDATA
 
 
 client/templates.js: $(call rwildcard,templates/,*.pug)
-	puglatizer -d ./templates -o $@
+	$(PUGLATIZER) -d ./templates -o $@
 
 stylesheets/app.css: stylesheets/app.styl
 	cd stylesheets; \
-	stylus < $(notdir $^) > $(notdir $@)
+	$(STYLUS) < $(notdir $^) > $(notdir $@)
 
 artifacts/portal.js: client/templates.js $(call rwildcard,client/,*.js)
-	browserify -t uglifyify client/app.js | uglifyjs --screw-ie8 -mc > $@
+	$(BROWSERIFY) -t uglifyify client/app.js | $(UGLIFYJS) --screw-ie8 -mc > $@
 
 artifacts/theme.css: stylesheets/app.css
-	cleancss --output $@ $^
+	$(CLEANCSS) --output $@ $^
 
 pm2:
-	jq -r '.apps[0].env.NODE_ENV |= "$(NODE_ENV)"' process.json > p2.tmp && mv p2.tmp process.json
+	$(JQ) -r '.apps[0].env.NODE_ENV |= "$(NODE_ENV)"' process.json > p2.tmp && mv p2.tmp process.json
 @DEBUG_TRUE@all-local: client/templates.js pm2
 @DEBUG_FALSE@all-local: artifacts/portal.js artifacts/theme.css
 

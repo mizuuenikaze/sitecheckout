@@ -4,6 +4,7 @@
   "author": "fernandocano@winduponthewater.com",
   "dependencies": {
     "ampersand-app": "^2.0.0",
+    "ampersand-checkbox-view": "^6.1.0",
     "ampersand-dom": "^1.2.1",
     "ampersand-form-view": "^7.0.0",
     "ampersand-input-view": "^7.0.0",

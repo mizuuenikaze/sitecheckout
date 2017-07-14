@@ -40,6 +40,15 @@ module.exports = FormView.extend({
 				required: true,
 				placeholder: '60.00',
 				parent: this
+			}),
+			new ExtendedInput({
+				label: 'Email',
+				name: 'email',
+				value: '',
+				type: 'email',
+				required: false,
+				placeholder: 'receipt@domain.tld',
+				parent: this
 			})
 		];
 	}
