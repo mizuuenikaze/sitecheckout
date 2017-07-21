@@ -28,6 +28,7 @@ app.extend({
 	stripeKey: config.stripe,
 	apiBaseUri: config.apiUrl,
 	debugMode: config.debugMode,
++	gaua: config.gaua,
 	router: new Router(),
 	bootstrapComponents: {},
 	// This is where it all starts
@@ -128,6 +129,10 @@ app.extend({
 		app.currentPage.errorMessage = error.message;
 	},
 	reInitModules: function () {
+		// GA
+		window.ga('set', 'page', this.router.history.root + this.router.history.getFragment());
+		window.ga('send', 'pageview');
+
 		if (window.Holder) {
 			window.Holder.run();
 		}
@@ -149,9 +154,29 @@ app.extend({
 			return;
 		}
 
+		var thisApp = this;
+
+		// GA
+		window['GoogleAnalyticsObject'] = 'ga';
+		window['ga'] = window['ga'] | function () {
+			(window['ga'].q = window['ga'].q | []).push(arguments)
+		};
+		window['ga'].l = 1 * new Date();
+
+		var gaScript = document.getElementById('gaScript');
+
+		if (!gaScript) {
+			scriptLoad(document,
+				'https://www.google-analytics.com/analytics.js',
+				function (err, scriptElement) {
+					scriptElement.id = 'gaScript';
+					window.ga('create', thisApp.gaua, 'auto');
+				}
+			);
+		}
+
 		this.bootstrapComponents = require('bootstrap.native');
 		
-		var thisApp = this;
 		var hjs = document.getElementById('hjs');
 		var paypal = document.getElementById('paypal');
 		var stripe = document.getElementById('stripe');
