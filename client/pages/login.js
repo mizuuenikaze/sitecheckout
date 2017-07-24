@@ -18,6 +18,10 @@ module.exports = PageView.extend({
 			this.approveModal = new window.Modal(this.queryByHook('approve'),{backdrop: 'static'});
 		}
 	},
+	postRender: function () {
+		// Always clear any token
+		app.pageContext.me.token = '';
+	},
 	confirmApproval: function () {
 		var view = this;
 		Promise.all(

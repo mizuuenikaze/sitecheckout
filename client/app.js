@@ -114,6 +114,7 @@ app.extend({
 		} else if (response.status === 401) {
 			app.pageContext.me.token = '';
 			app.router.redirectTo(app.contextPath + 'login');
+			throw new Error('Please login again.');
 		} else {
 			return response.json().then(function (body) {
 				var message = '' + response.status + ': ';
