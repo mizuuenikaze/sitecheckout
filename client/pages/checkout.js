@@ -23,8 +23,6 @@ module.exports = PageView.extend({
 		'model.cms.page.a.c': {type: 'text', hook: 'outl-a.c'}
 	}),
 	initialize: function (attrs) {
-		this.listenTo(app, 'externalReady', this.setupPaymentTypes);
-
 		// always start with a clean model
 		this.model.payment.unset([
 			'service',
@@ -83,8 +81,13 @@ module.exports = PageView.extend({
 	nextStep: function () {
 		this.queryByHook(this.model.payment.currentStep).Collapse.show();
 	},
-	setupPaymentTypes: function () {
-		dom.removeAttribute(this.queryByHook('paywithpaypal'), 'disabled');
-		dom.removeAttribute(this.queryByHook('paywithstripe'), 'disabled');
+	bindUiTo: function (external) {
+		if (external === 'paypal') {
+			dom.removeAttribute(this.queryByHook('paywithpaypal'), 'disabled');
+		}
+
+		if (external === 'stripe') {
+			dom.removeAttribute(this.queryByHook('paywithstripe'), 'disabled');
+		}
 	}
 });

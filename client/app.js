@@ -28,9 +28,8 @@ app.extend({
 	stripeKey: config.stripe,
 	apiBaseUri: config.apiUrl,
 	debugMode: config.debugMode,
-+	gaua: config.gaua,
+	gaua: config.gaua,
 	router: new Router(),
-	bootstrapComponents: {},
 	// This is where it all starts
 	init: function() {
 		this.pageContext = new PageContext();
@@ -128,38 +127,13 @@ app.extend({
 	handleError: function (error) {
 		app.currentPage.errorMessage = error.message;
 	},
-	reInitModules: function () {
-		// GA
-		window.ga('set', 'page', this.router.history.root + this.router.history.getFragment());
-		window.ga('send', 'pageview');
-
-		if (window.Holder) {
-			window.Holder.run();
-		}
-	},
-	thirdPartyWait: function () {
-		if (this.injectScripts) {
-			this.injectScripts();
-		}
-
-		if (!window.paypal || !window.Stripe) {
-			setTimeout(window.app.thirdPartyWait, 100);
-			return;
-		}
-
-		window.app.trigger('externalReady');
-	},
 	injectScripts: function() {
-		if (this.scriptsInjected) {
-			return;
-		}
-
 		var thisApp = this;
 
 		// GA
 		window['GoogleAnalyticsObject'] = 'ga';
 		window['ga'] = window['ga'] | function () {
-			(window['ga'].q = window['ga'].q | []).push(arguments)
+			(window['ga'].q = window['ga'].q | []).push(arguments);
 		};
 		window['ga'].l = 1 * new Date();
 
@@ -169,49 +143,91 @@ app.extend({
 			scriptLoad(document,
 				'https://www.google-analytics.com/analytics.js',
 				function (err, scriptElement) {
-					scriptElement.id = 'gaScript';
-					window.ga('create', thisApp.gaua, 'auto');
+					if (err) {
+						console.err('GA failed to load.');
+						console.err(err.message);
+					} else {
+						scriptElement.id = 'gaScript';
+						window.ga('create', thisApp.gaua, 'auto');
+						thisApp.trigger('googleAnalytics');
+					}
 				}
 			);
 		}
 
-		this.bootstrapComponents = require('bootstrap.native');
-		
+		// bootstrap components
+		var bsn = document.getElementById('bsn');
+
+		if (!bsn) {
+			scriptLoad(document,
+				'https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.12/bootstrap-native.min.js',
+				function (err, scriptElement) {
+					if (err) {
+						console.err('Bootstrap native failed to load.');
+						console.err(err.message);
+					} else {
+						scriptElement.id = 'bsn';
+						thisApp.trigger('bootstrapNative');
+					}
+				}
+			);
+		}
+
+		// placeholder images
 		var hjs = document.getElementById('hjs');
-		var paypal = document.getElementById('paypal');
-		var stripe = document.getElementById('stripe');
 
 		if (!hjs) {
 			scriptLoad(document,
 				'https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js',
 				function (err, scriptElement) {
-					scriptElement.id = 'hjs';
-					window.Holder.addTheme('custom', { 'bg': '#afafaf', 'fg': '#cccccc', 'size': 14, 'font': 'Glyphicons Halflings', 'font-weight': 'normal'});
-
-					setTimeout(lazysizes.init, 1000);
+					if (err) {
+						console.err('Holder js failed to load.');
+						console.err(err.message);
+					} else {
+						scriptElement.id = 'hjs';
+						window.Holder.addTheme('custom', { 'bg': '#afafaf', 'fg': '#cccccc', 'size': 14, 'font': 'Glyphicons Halflings', 'font-weight': 'normal'});
+						thisApp.trigger('holderJs');
+						setTimeout(lazysizes.init, 1000);
+					}
 				}
 			);
 		}
+
+		// paypal
+		var paypal = document.getElementById('paypal');
 
 		if (!paypal) {
 			scriptLoad(document,
 				'https://www.paypalobjects.com/api/checkout.js',
 				function (err, scriptElement) {
-					scriptElement.id = 'paypal';
-				}
-			);
-		}
-		
-		if (!stripe) {
-			scriptLoad(document,
-				'https://js.stripe.com/v3/',
-				function (err, scriptElement) {
-					scriptElement.id = 'stripe';
+					if (err) {
+						console.err('Paypal failed to load.');
+						console.err(err.message);
+					} else {
+						scriptElement.id = 'paypal';
+						thisApp.trigger('paypal');
+					}
 				}
 			);
 		}
 
-		this.scriptsInjected = true;
+		//stripe
+		var stripe = document.getElementById('stripe');
+
+		if (!stripe) {
+			scriptLoad(document,
+				'https://js.stripe.com/v3/',
+				function (err, scriptElement) {
+					if (err) {
+						console.err('Stripe failed to load.');
+						console.err(err.message);
+					} else {
+						scriptElement.id = 'stripe';
+						thisApp.trigger('stripe');
+					}
+				}
+			);
+		}
 	}
 });
 
