@@ -119,8 +119,9 @@ module.exports = View.extend({
 	handleBootstrapNative: function (el) {
 		if (el) {
 			this.updateBootstrapUi(el);
-			app.currentPage.bindUiTo('bootstrap');
 		}
+
+		app.currentPage.bindUiTo('bootstrap');
 	},
 	handlePaypal: function () {
 		app.currentPage.bindUiTo('paypal');
