@@ -38,7 +38,12 @@ module.exports = View.extend({
         //key.deleteScope(this.cid);
     },
 	postRender: function() {
-		return app.thirdPartyWait();
+		// override for special needs in extended pages
+		return true;
+	},
+	bindUiTo: function (external) {
+		// third party dom bindings
+		return true;
 	},
 	cmsFetch: function (options) {
 		if (this.cmsId) {

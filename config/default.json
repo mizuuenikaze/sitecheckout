@@ -15,6 +15,7 @@
     "client": {
         "apiUrl": "http://localhost:8082/proxied/api",
         "debugMode": true,
-		"stripe": "pk_test_TEsTl3Z1F04SwnEIwsWqtvVP"
+		"stripe": "pk_test_TEsTl3Z1F04SwnEIwsWqtvVP",
+        "gaua": "UA-102674808-1"
     }
 }

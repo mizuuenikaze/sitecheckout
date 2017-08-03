@@ -23,4 +23,10 @@ section.page.home
           source(data-srcset="/images/rocks_150w.jpg 150w, /images/rocks_300w.jpg 300w" media="--medium")
           source(data-srcset="/images/rocks_300w.jpg 300w")
           img.lazyload(data-src="holder.js/75px56p?theme=custom&font=Glyphicons Halflings&text=%EE%81%86&auto=yes" data-sizes="auto")
-    div(data-hook="paymentFlow")
+
+    div.row
+      div.col-sm-8
+        div(data-hook="paymentFlow")
+      div.col-sm-4
+        span.glyphicon.glyphicon-piggy-bank(aria-hidden="true")
+        div(data-hook="charge-confirm")

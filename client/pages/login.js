@@ -13,11 +13,14 @@ module.exports = PageView.extend({
 		'click [data-hook=confirm]': 'confirmApproval',
 		'click [data-hook=deny]': 'denyApproval',
 	},
-	initialize: function () {
-		this.listenTo(app, 'externalReady', this.setupModal);
+	bindUiTo: function (external) {
+		if (external === 'bootstrap') {
+			this.approveModal = new window.Modal(this.queryByHook('approve'),{backdrop: 'static'});
+		}
 	},
-	setupModal: function () {
-		this.approveModal = new app.bootstrapComponents.Modal(this.queryByHook('approve'),{backdrop: 'static'});
+	postRender: function () {
+		// Always clear any token
+		app.pageContext.me.token = '';
 	},
 	confirmApproval: function () {
 		var view = this;
@@ -50,7 +53,11 @@ module.exports = PageView.extend({
 	},
 	authenticateUser: function (userInfo) {
 		this.model.me.set(userInfo);
-		this.approveModal.hide();
+
+		if (this.approveModal) {
+			this.approveModal.hide();
+		}
+
 		app.navigate(app.contextPath);
 	},
 	subviews: {
@@ -75,6 +82,11 @@ module.exports = PageView.extend({
 						).then(function (body) {
 							if (body.links) {
 								parentModel.hateoas = body.links;
+
+								if (!parentView.approveModal) {
+									throw new Error('Modal not ready.');
+								}
+
 								parentView.approveModal.show();
 							} else {
 								parentView.authenticateUser(body);

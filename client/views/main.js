@@ -15,8 +15,15 @@ module.exports = View.extend({
     template: templates.body,
     autoRender: true,
     initialize: function () {
-        // this marks the correct nav item selected
-        this.listenTo(app, 'page', this.handleNewPage);
+		this.firstServe = true;
+
+		// this marks the correct nav item selected
+		this.listenTo(app, 'page', this.handleNewPage);
+		this.listenToOnce(app, 'googleAnalytics', this.handleGoogleAnalytics);
+		this.listenToOnce(app, 'holderJs', this.handleHolderJs);
+		this.listenToOnce(app, 'bootstrapNative', this.handleBootstrapNative);
+		this.listenToOnce(app, 'paypal', this.handlePaypal);
+		this.listenToOnce(app, 'stripe', this.handleStripe);
     },
     events: {
         'click a[href]': 'handleLinkClick'
@@ -42,8 +49,34 @@ module.exports = View.extend({
                 // store an additional reference, just because
                 app.currentPage = newView;
 
-				// some modules don't see new elements
-				app.reInitModules();
+				// page is as fully rendered as possible
+				// if first load then get external scripts
+				if (app.mainView.firstServe) {
+					app.mainView.firstServe = false;
+					app.injectScripts();
+				} else {
+					if (window.ga) {
+						app.mainView.handleGoogleAnalytics();
+					}
+
+					// some modules don't see new elements
+					if (window.Holder) {
+						app.mainView.handleHolderJs();
+					}
+
+					if (window.Affix) {
+						app.mainView.handleBootstrapNative(app.mainView.el);
+					}
+
+					if (window.paypal) {
+						app.mainView.handlePaypal();
+					}
+
+					if (window.Stripe) {
+						app.mainView.handleStripe();
+					}
+				}
+
 				if (newView.postRender) {
 					newView.postRender();
 				}
@@ -65,13 +98,37 @@ module.exports = View.extend({
 
 				// mark the correct nav item selected
 				options.mainView.updateActiveNav();
-				options.mainView.updateBootstrapUi(options.mainView.el);
 			},
 			error: function (model, response, options) {
-				options.pageView.errorMessage = response.message;
+				if (response.statusCode === 401) {
+					app.pageContext.me.token = '';
+					app.router.redirectTo(app.contextPath + 'login');
+				} else {
+					options.pageView.errorMessage = response.rawRequest.responseText;
+				}
 			}
 		});
     },
+	handleGoogleAnalytics: function () {
+		window.ga('set', 'page', app.router.history.root + app.router.history.getFragment());
+		window.ga('send', 'pageview');
+	},
+	handleHolderJs: function () {
+		window.Holder.run();
+	},
+	handleBootstrapNative: function (el) {
+		if (el) {
+			this.updateBootstrapUi(el);
+		}
+
+		app.currentPage.bindUiTo('bootstrap');
+	},
+	handlePaypal: function () {
+		app.currentPage.bindUiTo('paypal');
+	},
+	handleStripe: function () {
+		app.currentPage.bindUiTo('stripe');
+	},
 
     // Handles all `<a>` clicks in the app not handled
     // by another view. This lets us determine if this is
@@ -106,44 +163,30 @@ module.exports = View.extend({
 	updateBootstrapUi: function (root) {
 		var lookUp = root.getElementsByTagName('*');
 
-		var dataAttributes = {
-			Affix: 'data-spy',
-			ScrollSpy: 'data-spy',
-			Carousel: 'data-ride',
-			Alert: 'data-dismiss',
-			Button: 'data-toggle',
-			Collapse: 'data-toggle',
-			Dropdown: 'data-toggle',
-			Modal: 'data-toggle',
-			Popover: 'data-toggle',
-			Tab: 'data-toggle',
-			Tooltip: 'data-toggle'
-		};
+		if (!this.dataAttributes) {
+			this.dataAttributes = {
+				Affix: {cons: window.Affix, tag: 'data-spy'},
+				ScrollSpy: {cons: window.ScrollSpy, tag: 'data-spy'},
+				Carousel: {cons: window.Carousel, tag: 'data-ride'},
+				Alert: {cons: window.Alert, tag: 'data-dismiss'},
+				Button: {cons: window.Button, tag: 'data-toggle'},
+				Collapse: {cons: window.Collapse, tag: 'data-toggle'},
+				Dropdown: {cons: window.Dropdown, tag: 'data-toggle'},
+				Modal: {cons: window.Modal, tag: 'data-toggle'},
+				Popover: {cons: window.Popover, tag: 'data-toggle'},
+				Tab: {cons: window.Tab, tag: 'data-toggle'},
+				Tooltip: {cons: window.Tooltip, tag: 'data-toggle'}
+			};
+		}
 
-		var customizer = function(objValue, srcValue, key, object, source) {
-			if (_.isArray(objValue)) {
-				objValue.push(srcValue);
-				return objValue;
-			} else {
-				if (!objValue) {
-					return [srcValue];
-				} else {
-					return [objValue, srcValue];
-				}
-			}
-		};
-
-		var munger = _.partialRight(_.assignWith, customizer);
-		var newComp = munger({}, app.bootstrapComponents, dataAttributes);
-
-		_.forOwn(newComp,
+		_.forOwn(this.dataAttributes,
 			function(value, key) {
 				for (var i=0; i < lookUp.length; i++) {
-					var attrValue = lookUp[i].getAttribute(value[1]);
+					var attrValue = lookUp[i].getAttribute(value.tag);
 					var expectedAttrValue = key.replace(/spy/i,'').toLowerCase();
 					if ( attrValue && key === 'Button' && ( attrValue.indexOf(expectedAttrValue) > -1 ) // data-toggle="buttons"
 						|| attrValue === expectedAttrValue ) { // all other components
-						new value[0](lookUp[i]);
+						new value.cons(lookUp[i]);
 					}
 				}
 			}

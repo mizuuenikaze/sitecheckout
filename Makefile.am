@@ -7,20 +7,20 @@ rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 
 client/templates.js: $(call rwildcard,templates/,*.pug)
-	puglatizer -d ./templates -o $@
+	$(PUGLATIZER) -d ./templates -o $@
 
 stylesheets/app.css: stylesheets/app.styl
 	cd stylesheets; \
-	stylus < $(notdir $^) > $(notdir $@)
+	$(STYLUS) < $(notdir $^) > $(notdir $@)
 
 artifacts/portal.js: client/templates.js $(call rwildcard,client/,*.js)
-	browserify -t uglifyify client/app.js | uglifyjs --screw-ie8 -mc > $@
+	$(BROWSERIFY) -t uglifyify client/app.js | $(UGLIFYJS) --screw-ie8 -mc > $@
 
 artifacts/theme.css: stylesheets/app.css
-	cleancss --output $@ $^
+	$(CLEANCSS) --output $@ $^
 
 pm2:
-	jq -r '.apps[0].env.NODE_ENV |= "$(NODE_ENV)"' process.json > p2.tmp && mv p2.tmp process.json
+	$(JQ) -r '.apps[0].env.NODE_ENV |= "$(NODE_ENV)"' process.json > p2.tmp && mv p2.tmp process.json
 
 if DEBUG
 NODE_ENV = development

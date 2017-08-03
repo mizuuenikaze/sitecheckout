@@ -4,13 +4,14 @@ var ViewSwitcher = require('ampersand-view-switcher');
 var templates = require('../templates');
 var PayPalFlow = require('../views/payPalFlow');
 var StripeFlow = require('../views/stripeFlow');
+var ChargeConfirm = require('../views/chargeConfirm');
 var app = require('ampersand-app');
 var _ = require('lodash');
 
 
 module.exports = PageView.extend({
-    pageTitle: 'checkout',
-    template: templates.pages.checkout,
+	pageTitle: 'checkout',
+	template: templates.pages.checkout,
 	cmsId: '1b4502d6a9a5485c8317e4965fcb6926',
 	events: {
 		'click [data-hook~=paywithpaypal]': 'flowPayPal',
@@ -22,16 +23,17 @@ module.exports = PageView.extend({
 		'model.cms.page.a.c': {type: 'text', hook: 'outl-a.c'}
 	}),
 	initialize: function (attrs) {
-		this.listenTo(app, 'externalReady', this.setupPaymentTypes);
-
 		// always start with a clean model
-		this.model.payment.unset('service');
-		this.model.payment.unset('price');
-		this.model.payment.unset('committedPayment');
-		this.model.payment.unset('paymentMethod');
-		this.model.payment.unset('paymentId');
-		this.model.payment.unset('payerId');
-		this.model.payment.unset('currentStep');
+		this.model.payment.unset([
+			'service',
+			'price',
+			'committedPayment',
+			'paymentMethod',
+			'paymentId',
+			'payerId',
+			'currentStep',
+			'info',
+			'metadata']);
 	},
 	render: function () {
 		this.renderWithTemplate(this);
@@ -41,6 +43,21 @@ module.exports = PageView.extend({
 				newView.queryByHook('stepOne').Collapse.show();
 			}
 		});
+
+		return this;
+	},
+	subviews: {
+		confirmPanel: {
+			hook: 'charge-confirm',
+			waitFor: 'model',
+			prepareView: function (el) {
+				var model = this.model;
+				return new ChargeConfirm({
+					el: el,
+					model: this.model.payment
+				});
+			}
+		}
 	},
 	flowPayPal: function () {
 		if (this.model.payment.currentStep !== 'start') {
@@ -64,8 +81,13 @@ module.exports = PageView.extend({
 	nextStep: function () {
 		this.queryByHook(this.model.payment.currentStep).Collapse.show();
 	},
-	setupPaymentTypes: function () {
-		dom.removeAttribute(this.queryByHook('paywithpaypal'), 'disabled');
-		dom.removeAttribute(this.queryByHook('paywithstripe'), 'disabled');
+	bindUiTo: function (external) {
+		if (external === 'paypal') {
+			dom.removeAttribute(this.queryByHook('paywithpaypal'), 'disabled');
+		}
+
+		if (external === 'stripe') {
+			dom.removeAttribute(this.queryByHook('paywithstripe'), 'disabled');
+		}
 	}
 });
