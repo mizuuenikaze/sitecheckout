@@ -12,14 +12,15 @@ are separate projects that provide distinct restful apis.  Final deployments int
 
 ## Production build
 Configure for production
-\$ ./configure --enable-debug=no
+\$ ./configure --prefix=/var/www/domain.tld/htdocs --enable-debug=no
 \$ make
 
 ## How to run it
 
 1. download/install [node.js](http://nodejs.org/)
+1. install pm2
 1. install dependencies: `npm install`
-1. run it: `npm start`
+1. run it: `pm2 start process.json`
 1. open http://localhost:3000 in a browser
 
 ## How it's structured

@@ -9,7 +9,7 @@
 	/*jshint eqnull:true */
 	if(!document.getElementsByClassName){return;}
 
-	var lazySizesConfig;
+	var lazysizes, lazySizesConfig;
 
 	var docElem = document.documentElement;
 
@@ -70,7 +70,13 @@
 	var triggerEvent = function(elem, name, detail, noBubbles, noCancelable){
 		var event = document.createEvent('CustomEvent');
 
-		event.initCustomEvent(name, !noBubbles, !noCancelable, detail || {});
+		if(!detail){
+			detail = {};
+		}
+
+		detail.instance = lazysizes;
+
+		event.initCustomEvent(name, !noBubbles, !noCancelable, detail);
 
 		elem.dispatchEvent(event);
 		return event;
@@ -158,20 +164,20 @@
 		var running;
 		var lastTime = 0;
 		var gDelay = 125;
-		var RIC_DEFAULT_TIMEOUT = 666;
-		var rICTimeout = RIC_DEFAULT_TIMEOUT;
+		var rICTimeout = lazySizesConfig.ricTimeout;
 		var run = function(){
 			running = false;
 			lastTime = Date.now();
 			fn();
 		};
-		var idleCallback = requestIdleCallback ?
+		var idleCallback = requestIdleCallback && lazySizesConfig.ricTimeout ?
 			function(){
 				requestIdleCallback(run, {timeout: rICTimeout});
-				if(rICTimeout !== RIC_DEFAULT_TIMEOUT){
-					rICTimeout = RIC_DEFAULT_TIMEOUT;
+
+				if(rICTimeout !== lazySizesConfig.ricTimeout){
+					rICTimeout = lazySizesConfig.ricTimeout;
 				}
-			}:
+			} :
 			rAFIt(function(){
 				setTimeout(run);
 			}, true)
@@ -179,8 +185,9 @@
 
 		return function(isPriority){
 			var delay;
+
 			if((isPriority = isPriority === true)){
-				rICTimeout = 44;
+				rICTimeout = 33;
 			}
 
 			if(running){
@@ -230,9 +237,50 @@
 		};
 	};
 
+	(function(){
+		var prop;
+
+		var lazySizesDefaults = {
+			lazyClass: 'lazyload',
+			loadedClass: 'lazyloaded',
+			loadingClass: 'lazyloading',
+			preloadClass: 'lazypreload',
+			errorClass: 'lazyerror',
+			//strictClass: 'lazystrict',
+			autosizesClass: 'lazyautosizes',
+			srcAttr: 'data-src',
+			srcsetAttr: 'data-srcset',
+			sizesAttr: 'data-sizes',
+			//preloadAfterLoad: false,
+			minSize: 40,
+			customMedia: {},
+			init: true,
+			expFactor: 1.5,
+			hFac: 0.8,
+			loadMode: 2,
+			loadHidden: true,
+			ricTimeout: 300,
+		};
+
+		lazySizesConfig = window.lazySizesConfig || window.lazysizesConfig || {};
+
+		for(prop in lazySizesDefaults){
+			if(!(prop in lazySizesConfig)){
+				lazySizesConfig[prop] = lazySizesDefaults[prop];
+			}
+		}
+
+		window.lazySizesConfig = lazySizesConfig;
+
+		setTimeout(function(){
+			if(lazySizesConfig.init){
+				init();
+			}
+		});
+	})();
 
 	var loader = (function(){
-		var lazyloadElems, preloadElems, isCompleted, resetPreloadingTimer, loadMode, started;
+		var preloadElems, isCompleted, resetPreloadingTimer, loadMode, started;
 
 		var eLvW, elvH, eLtop, eLleft, eLright, eLbottom;
 
@@ -289,6 +337,8 @@
 		var checkElements = function() {
 			var eLlen, i, rect, autoLoadElem, loadedSomething, elemExpand, elemNegativeExpand, elemExpandVal, beforeExpandVal;
 
+			var lazyloadElems = lazysizes.elements;
+
 			if((loadMode = lazySizesConfig.loadMode) && isLoading < 8 && (eLlen = lazyloadElems.length)){
 
 				i = 0;
@@ -337,6 +387,7 @@
 						(eLright = rect.right) >= elemNegativeExpand * hFac &&
 						(eLleft = rect.left) <= eLvW &&
 						(eLbottom || eLright || eLleft || eLtop) &&
+						(lazySizesConfig.loadHidden || getCSS(lazyloadElems[i], 'visibility') != 'hidden') &&
 						((isCompleted && isLoading < 3 && !elemExpandVal && (loadMode < 3 || lowRuns < 4)) || isNestedVisible(lazyloadElems[i], elemExpand))){
 						unveilElement(lazyloadElems[i]);
 						loadedSomething = true;
@@ -361,6 +412,7 @@
 			addClass(e.target, lazySizesConfig.loadedClass);
 			removeClass(e.target, lazySizesConfig.loadingClass);
 			addRemoveLoadEvents(e.target, rafSwitchLoadingClass);
+			triggerEvent(e.target, 'lazyloaded');
 		};
 		var rafedSwitchLoadingClass = rAFIt(switchLoadingClass);
 		var rafSwitchLoadingClass = function(e){
@@ -376,7 +428,7 @@
 		};
 
 		var handleSources = function(source){
-			var customMedia, parent;
+			var customMedia;
 
 			var sourceSrcset = source[_getAttribute](lazySizesConfig.srcsetAttr);
 
@@ -386,13 +438,6 @@
 
 			if(sourceSrcset){
 				source.setAttribute('srcset', sourceSrcset);
-			}
-
-			//https://bugzilla.mozilla.org/show_bug.cgi?id=1170572
-			if(customMedia){
-				parent = source.parentNode;
-				parent.insertBefore(source.cloneNode(), source);
-				parent.removeChild(source);
 			}
 		};
 
@@ -444,7 +489,7 @@
 					}
 				}
 
-				if(srcset || isPicture){
+				if(isImg && (srcset || isPicture)){
 					updatePolyfill(elem, {src: src});
 				}
 			}
@@ -475,7 +520,7 @@
 			var sizes = isImg && (elem[_getAttribute](lazySizesConfig.sizesAttr) || elem[_getAttribute]('sizes'));
 			var isAuto = sizes == 'auto';
 
-			if( (isAuto || !isCompleted) && isImg && (elem.src || elem.srcset) && !elem.complete && !hasClass(elem, lazySizesConfig.errorClass)){return;}
+			if( (isAuto || !isCompleted) && isImg && (elem[_getAttribute]('src') || elem.srcset) && !elem.complete && !hasClass(elem, lazySizesConfig.errorClass) && hasClass(elem, lazySizesConfig.lazyClass)){return;}
 
 			detail = triggerEvent(elem, 'lazyunveilread').detail;
 
@@ -518,7 +563,7 @@
 			_: function(){
 				started = Date.now();
 
-				lazyloadElems = document.getElementsByClassName(lazySizesConfig.lazyClass);
+				lazysizes.elements = document.getElementsByClassName(lazySizesConfig.lazyClass);
 				preloadElems = document.getElementsByClassName(lazySizesConfig.lazyClass + ' ' + lazySizesConfig.preloadClass);
 				hFac = lazySizesConfig.hFac;
 
@@ -549,7 +594,7 @@
 					setTimeout(onload, 20000);
 				}
 
-				if(lazyloadElems.length){
+				if(lazysizes.elements.length){
 					checkElements();
 					rAF._lsFlush();
 				} else {
@@ -633,47 +678,7 @@
 		}
 	};
 
-	(function(){
-		var prop;
-
-		var lazySizesDefaults = {
-			lazyClass: 'lazyload',
-			loadedClass: 'lazyloaded',
-			loadingClass: 'lazyloading',
-			preloadClass: 'lazypreload',
-			errorClass: 'lazyerror',
-			//strictClass: 'lazystrict',
-			autosizesClass: 'lazyautosizes',
-			srcAttr: 'data-src',
-			srcsetAttr: 'data-srcset',
-			sizesAttr: 'data-sizes',
-			//preloadAfterLoad: false,
-			minSize: 40,
-			customMedia: {},
-			init: true,
-			expFactor: 1.5,
-			hFac: 0.8,
-			loadMode: 2
-		};
-
-		lazySizesConfig = window.lazySizesConfig || window.lazysizesConfig || {};
-
-		for(prop in lazySizesDefaults){
-			if(!(prop in lazySizesConfig)){
-				lazySizesConfig[prop] = lazySizesDefaults[prop];
-			}
-		}
-
-		window.lazySizesConfig = lazySizesConfig;
-
-		setTimeout(function(){
-			if(lazySizesConfig.init){
-				init();
-			}
-		});
-	})();
-
-	return {
+	lazysizes = {
 		cfg: lazySizesConfig,
 		autoSizer: autoSizer,
 		loader: loader,
@@ -686,404 +691,7 @@
 		gW: getWidth,
 		rAF: rAF,
 	};
+
+	return lazysizes;
 }
 ));
-/*
-This lazysizes plugin optimizes perceived performance by adding better support for rendering progressive JPGs/PNGs in conjunction with the LQIP pattern.
-*/
-(function(document){
-	/*jshint eqnull:true */
-	'use strict';
-	var regImg, onLoad;
-
-	if('srcset' in document.createElement('img')){
-		regImg = /^img$/i;
-
-		onLoad = function(e){
-			e.target.style.backgroundSize = '';
-			e.target.style.backgroundImage = '';
-			e.target.removeEventListener(e.type, onLoad);
-		};
-
-		document.addEventListener('lazybeforeunveil', function(e){
-			var img = e.target;
-			if(!regImg.test(img.nodeName)){
-				return;
-			}
-			var src = img.getAttribute('src');
-			if(src) {
-				img.style.backgroundSize = '100% 100%';
-				img.style.backgroundImage = 'url(' + src + ')';
-				img.removeAttribute('src');
-				img.addEventListener('load', onLoad);
-			}
-		}, false);
-	}
-})(document);
-(function(window, document, undefined){
-	/*jshint eqnull:true */
-	'use strict';
-	var polyfill;
-	var config = (window.lazySizes && lazySizes.cfg) || window.lazySizesConfig;
-	var img = document.createElement('img');
-	var supportSrcset = ('sizes' in img) && ('srcset' in img);
-	var regHDesc = /\s+\d+h/g;
-	var fixEdgeHDescriptor = (function(){
-		var regDescriptors = /\s+(\d+)(w|h)\s+(\d+)(w|h)/;
-		var forEach = Array.prototype.forEach;
-
-		return function(edgeMatch){
-			var img = document.createElement('img');
-			var removeHDescriptors = function(source){
-				var ratio;
-				var srcset = source.getAttribute(lazySizesConfig.srcsetAttr);
-				if(srcset){
-					if(srcset.match(regDescriptors)){
-						if(RegExp.$2 == 'w'){
-							ratio = RegExp.$1 / RegExp.$3;
-						} else {
-							ratio = RegExp.$3 / RegExp.$1;
-						}
-
-						if(ratio){
-							source.setAttribute('data-aspectratio', ratio);
-						}
-					}
-					source.setAttribute(lazySizesConfig.srcsetAttr, srcset.replace(regHDesc, ''));
-				}
-			};
-			var handler = function(e){
-				var picture = e.target.parentNode;
-
-				if(picture && picture.nodeName == 'PICTURE'){
-					forEach.call(picture.getElementsByTagName('source'), removeHDescriptors);
-				}
-				removeHDescriptors(e.target);
-			};
-
-			var test = function(){
-				if(!!img.currentSrc){
-					document.removeEventListener('lazybeforeunveil', handler);
-				}
-			};
-
-			if(edgeMatch[1]){
-				document.addEventListener('lazybeforeunveil', handler);
-
-				if(true || edgeMatch[1] > 14){
-					img.onload = test;
-					img.onerror = test;
-
-					img.srcset = 'data:,a 1w 1h';
-
-					if(img.complete){
-						test();
-					}
-				}
-			}
-		};
-	})();
-
-
-	if(!config){
-		config = {};
-		window.lazySizesConfig = config;
-	}
-
-	if(!config.supportsType){
-		config.supportsType = function(type/*, elem*/){
-			return !type;
-		};
-	}
-
-	if(window.picturefill || config.pf){return;}
-
-	if(window.HTMLPictureElement && supportSrcset){
-
-		if(document.msElementsFromPoint){
-			fixEdgeHDescriptor(navigator.userAgent.match(/Edge\/(\d+)/));
-		}
-
-		config.pf = function(){};
-		return;
-	}
-
-	config.pf = function(options){
-		var i, len;
-		if(window.picturefill){return;}
-		for(i = 0, len = options.elements.length; i < len; i++){
-			polyfill(options.elements[i]);
-		}
-	};
-
-	// partial polyfill
-	polyfill = (function(){
-		var ascendingSort = function( a, b ) {
-			return a.w - b.w;
-		};
-		var regPxLength = /^\s*\d+\.*\d*px\s*$/;
-		var reduceCandidate = function (srces) {
-			var lowerCandidate, bonusFactor;
-			var len = srces.length;
-			var candidate = srces[len -1];
-			var i = 0;
-
-			for(i; i < len;i++){
-				candidate = srces[i];
-				candidate.d = candidate.w / srces.w;
-
-				if(candidate.d >= srces.d){
-					if(!candidate.cached && (lowerCandidate = srces[i - 1]) &&
-						lowerCandidate.d > srces.d - (0.13 * Math.pow(srces.d, 2.2))){
-
-						bonusFactor = Math.pow(lowerCandidate.d - 0.6, 1.6);
-
-						if(lowerCandidate.cached) {
-							lowerCandidate.d += 0.15 * bonusFactor;
-						}
-
-						if(lowerCandidate.d + ((candidate.d - srces.d) * bonusFactor) > srces.d){
-							candidate = lowerCandidate;
-						}
-					}
-					break;
-				}
-			}
-			return candidate;
-		};
-
-		var parseWsrcset = (function(){
-			var candidates;
-			var regWCandidates = /(([^,\s].[^\s]+)\s+(\d+)w)/g;
-			var regMultiple = /\s/;
-			var addCandidate = function(match, candidate, url, wDescriptor){
-				candidates.push({
-					c: candidate,
-					u: url,
-					w: wDescriptor * 1
-				});
-			};
-
-			return function(input){
-				candidates = [];
-				input = input.trim();
-				input
-					.replace(regHDesc, '')
-					.replace(regWCandidates, addCandidate)
-				;
-
-				if(!candidates.length && input && !regMultiple.test(input)){
-					candidates.push({
-						c: input,
-						u: input,
-						w: 99
-					});
-				}
-
-				return candidates;
-			};
-		})();
-
-		var runMatchMedia = function(){
-			if(runMatchMedia.init){return;}
-
-			runMatchMedia.init = true;
-			addEventListener('resize', (function(){
-				var timer;
-				var matchMediaElems = document.getElementsByClassName('lazymatchmedia');
-				var run = function(){
-					var i, len;
-					for(i = 0, len = matchMediaElems.length; i < len; i++){
-						polyfill(matchMediaElems[i]);
-					}
-				};
-
-				return function(){
-					clearTimeout(timer);
-					timer = setTimeout(run, 66);
-				};
-			})());
-		};
-
-		var createSrcset = function(elem, isImage){
-			var parsedSet;
-			var srcSet = elem.getAttribute('srcset') || elem.getAttribute(config.srcsetAttr);
-
-			if(!srcSet && isImage){
-				srcSet = !elem._lazypolyfill ?
-					(elem.getAttribute(config.srcAttr) || elem.getAttribute('src')) :
-					elem._lazypolyfill._set
-				;
-			}
-
-			if(!elem._lazypolyfill || elem._lazypolyfill._set != srcSet){
-
-				parsedSet = parseWsrcset( srcSet || '' );
-				if(isImage && elem.parentNode){
-					parsedSet.isPicture = elem.parentNode.nodeName.toUpperCase() == 'PICTURE';
-
-					if(parsedSet.isPicture){
-						if(window.matchMedia){
-							lazySizes.aC(elem, 'lazymatchmedia');
-							runMatchMedia();
-						}
-					}
-				}
-
-				parsedSet._set = srcSet;
-				Object.defineProperty(elem, '_lazypolyfill', {
-					value: parsedSet,
-					writable: true
-				});
-			}
-		};
-
-		var getX = function(elem){
-			var dpr = window.devicePixelRatio || 1;
-			var optimum = lazySizes.getX && lazySizes.getX(elem);
-			return Math.min(optimum || dpr, 2.5, dpr);
-		};
-
-		var matchesMedia = function(media){
-			if(window.matchMedia){
-				matchesMedia = function(media){
-					return !media || (matchMedia(media) || {}).matches;
-				};
-			} else {
-				return !media;
-			}
-
-			return matchesMedia(media);
-		};
-
-		var getCandidate = function(elem){
-			var sources, i, len, media, source, srces, src, width;
-
-			source = elem;
-			createSrcset(source, true);
-			srces = source._lazypolyfill;
-
-			if(srces.isPicture){
-				for(i = 0, sources = elem.parentNode.getElementsByTagName('source'), len = sources.length; i < len; i++){
-					if( config.supportsType(sources[i].getAttribute('type'), elem) && matchesMedia( sources[i].getAttribute('media')) ){
-						source = sources[i];
-						createSrcset(source);
-						srces = source._lazypolyfill;
-						break;
-					}
-				}
-			}
-
-			if(srces.length > 1){
-				width = source.getAttribute('sizes') || '';
-				width = regPxLength.test(width) && parseInt(width, 10) || lazySizes.gW(elem, elem.parentNode);
-				srces.d = getX(elem);
-				if(!srces.src || !srces.w || srces.w < width){
-					srces.w = width;
-					src = reduceCandidate(srces.sort(ascendingSort));
-					srces.src = src;
-				} else {
-					src = srces.src;
-				}
-			} else {
-				src = srces[0];
-			}
-
-			return src;
-		};
-
-		var p = function(elem){
-			if(supportSrcset && elem.parentNode && elem.parentNode.nodeName.toUpperCase() != 'PICTURE'){return;}
-			var candidate = getCandidate(elem);
-
-			if(candidate && candidate.u && elem._lazypolyfill.cur != candidate.u){
-				elem._lazypolyfill.cur = candidate.u;
-				candidate.cached = true;
-				elem.setAttribute(config.srcAttr, candidate.u);
-				elem.setAttribute('src', candidate.u);
-			}
-		};
-
-		p.parse = parseWsrcset;
-
-		return p;
-	})();
-
-	if(config.loadedClass && config.loadingClass){
-		(function(){
-			var sels = [];
-			['img[sizes$="px"][srcset].', 'picture > img:not([srcset]).'].forEach(function(sel){
-				sels.push(sel + config.loadedClass);
-				sels.push(sel + config.loadingClass);
-			});
-			config.pf({
-				elements: document.querySelectorAll(sels.join(', '))
-			});
-		})();
-
-	}
-})(window, document);
-
-/**
- * Some versions of iOS (8.1-) do load the first candidate of a srcset candidate list, if width descriptors with the sizes attribute is used.
- * This tiny extension prevents this wasted download by creating a picture structure around the image.
- * Note: This extension is already included in the ls.respimg.js file.
- *
- * Usage:
- *
- * <img
- * 	class="lazyload"
- * 	data-sizes="auto"
- * 	data-srcset="small.jpg 640px,
- * 		medium.jpg 980w,
- * 		large.jpg 1280w"
- * 	/>
- */
-
-(function(document){
-	'use strict';
-	var regPicture;
-	var img = document.createElement('img');
-
-	if(('srcset' in img) && !('sizes' in img) && !window.HTMLPictureElement){
-		regPicture = /^picture$/i;
-		document.addEventListener('lazybeforeunveil', function(e){
-			var elem, parent, srcset, sizes, isPicture;
-			var picture, source;
-			if(e.defaultPrevented ||
-				lazySizesConfig.noIOSFix ||
-				!(elem = e.target) ||
-				!(srcset = elem.getAttribute(lazySizesConfig.srcsetAttr)) ||
-				!(parent = elem.parentNode) ||
-				(
-					!(isPicture = regPicture.test(parent.nodeName || '')) &&
-					!(sizes = elem.getAttribute('sizes') || elem.getAttribute(lazySizesConfig.sizesAttr))
-				)
-			){return;}
-
-			picture = isPicture ? parent : document.createElement('picture');
-
-			if(!elem._lazyImgSrc){
-				Object.defineProperty(elem, '_lazyImgSrc', {
-					value: document.createElement('source'),
-					writable: true
-				});
-			}
-			source = elem._lazyImgSrc;
-
-			if(sizes){
-				source.setAttribute('sizes', sizes);
-			}
-
-			source.setAttribute(lazySizesConfig.srcsetAttr, srcset);
-			elem.setAttribute('data-pfsrcset', srcset);
-			elem.removeAttribute(lazySizesConfig.srcsetAttr);
-
-			if(!isPicture){
-				parent.insertBefore(picture, elem);
-				picture.appendChild(elem);
-			}
-			picture.insertBefore(source, elem);
-		});
-	}
-})(document);

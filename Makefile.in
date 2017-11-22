@@ -522,7 +522,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-generic clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -592,11 +592,11 @@ uninstall-am: uninstall-checkoutDATA
 .MAKE: install-am install-strip
 
 .PHONY: all all-am all-local am--refresh check check-am clean \
-	clean-generic cscopelist-am ctags-am dist dist-all dist-bzip2 \
-	dist-gzip dist-lzip dist-shar dist-tarZ dist-xz dist-zip \
-	distcheck distclean distclean-generic distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-checkoutDATA install-data \
+	clean-generic clean-local cscopelist-am ctags-am dist dist-all \
+	dist-bzip2 dist-gzip dist-lzip dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-generic distcleancheck \
+	distdir distuninstallcheck dvi dvi-am html html-am info \
+	info-am install install-am install-checkoutDATA install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am install-info \
 	install-info-am install-man install-pdf install-pdf-am \
@@ -624,6 +624,9 @@ artifacts/theme.css: stylesheets/app.css
 
 pm2:
 	$(JQ) -r '.apps[0].env.NODE_ENV |= "$(NODE_ENV)"' process.json > p2.tmp && mv p2.tmp process.json
+
+clean-local:
+	rm -f client/templates.js artifacts/*
 @DEBUG_TRUE@all-local: client/templates.js pm2
 @DEBUG_FALSE@all-local: artifacts/portal.js artifacts/theme.css
 
