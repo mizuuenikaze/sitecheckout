@@ -37,7 +37,8 @@ module.exports = PageView.extend({
 	},
 	render: function () {
 		this.renderWithTemplate(this);
-		this.paymentFlow = new ViewSwitcher(this.queryByHook('paymentFlow'), {
+		this.paymentFlow = new ViewSwitcher({
+			el: this.queryByHook('paymentFlow'),
 			show: function (newView) {
 				newView.integrateUi();
 				newView.queryByHook('stepOne').Collapse.show();

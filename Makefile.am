@@ -22,6 +22,9 @@ artifacts/theme.css: stylesheets/app.css
 pm2:
 	$(JQ) -r '.apps[0].env.NODE_ENV |= "$(NODE_ENV)"' process.json > p2.tmp && mv p2.tmp process.json
 
+clean-local:
+	rm -f client/templates.js artifacts/*
+
 if DEBUG
 NODE_ENV = development
 all-local: client/templates.js pm2
