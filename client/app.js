@@ -36,7 +36,7 @@ app.extend({
 
 		// Create and attach our main view
 		this.mainView = new MainView({
-			model: this.me,
+			model: this.pageContext.me,
 			el: document.body
 		});
 
@@ -79,7 +79,7 @@ app.extend({
 			mode = 'cors';
 			credentials = 'include';
 		}
-		
+
 		headers.append('Accept', 'application/json');
 		headers.append('Content-Type', 'application/json');
 
@@ -128,7 +128,7 @@ app.extend({
 	handleError: function (error) {
 		app.currentPage.errorMessage = error.message;
 	},
-	injectScripts: function() {
+	injectScripts: function () {
 		var thisApp = this;
 
 		// GA
@@ -156,12 +156,30 @@ app.extend({
 			);
 		}
 
+		// font-awesome
+		var fontAwesome = document.getElementById('fontAwesome');
+
+		if (!fontAwesome) {
+			scriptLoad(document,
+				'https://use.fontawesome.com/releases/v5.0.2/js/all.js',
+				function (err, scriptElement) {
+					if (err) {
+						console.err('Font Awesome failed to load.');
+						console.err(err.message);
+					} else {
+						scriptElement.id = 'fontAwesome';
+						thisApp.trigger('fontAwesome');
+					}
+				}
+			);
+		}
+
 		// bootstrap components
 		var bsn = document.getElementById('bsn');
 
 		if (!bsn) {
 			scriptLoad(document,
-				'https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.12/bootstrap-native.min.js',
+				'https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.21/bootstrap-native-v4.min.js',
 				function (err, scriptElement) {
 					if (err) {
 						console.err('Bootstrap native failed to load.');
@@ -179,14 +197,14 @@ app.extend({
 
 		if (!hjs) {
 			scriptLoad(document,
-				'https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.js',
+				'https://cdnjs.cloudflare.com/ajax/libs/holder/2.9.4/holder.min.js',
 				function (err, scriptElement) {
 					if (err) {
 						console.err('Holder js failed to load.');
 						console.err(err.message);
 					} else {
 						scriptElement.id = 'hjs';
-						window.Holder.addTheme('custom', { 'bg': '#afafaf', 'fg': '#cccccc', 'size': 14, 'font': 'Glyphicons Halflings', 'font-weight': 'normal'});
+						window.Holder.addTheme('custom', { 'bg': '#afafaf', 'fg': '#cccccc', 'size': 14, 'font': 'FontAwesome', 'font-weight': 'normal'});
 						thisApp.trigger('holderJs');
 						setTimeout(lazysizes.init, 1000);
 					}
@@ -229,6 +247,34 @@ app.extend({
 				}
 			);
 		}
+	},
+	dateFormat(date) {
+		// returns a yyy/mm/dd string
+		var candidate = new Date(date);
+		var month = '' + (candidate.getMonth() + 1);
+		var day = '' + candidate.getDate();
+		var year = candidate.getFullYear();
+
+		if (month.length < 2) {
+			month = '0' + month;
+		}
+
+		if (day.length < 2) {
+			day = '0' + day;
+		}
+
+		return [year, month, day].join('/');
+	},
+	dateDiff(datepart, date1, date2) {
+		var diff = date2.getTime() - date1.getTime();
+		var divideBy = {
+			w:604800000,
+			d:86400000,
+			h:3600000,
+			m:60000,
+			s:1000 };
+
+		return Math.floor(diff/divideBy[datepart]);
 	}
 });
 

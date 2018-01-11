@@ -1,0 +1,9 @@
+div#error-container.container.collapse(data-hook="error-container-final")
+  div.card.card-body
+    div.alert.alert-danger(role="alert")
+      span.sr-only Error
+      span.fas.fa-exclamation-circle(aria-hidden="true")
+      span(data-hook="error-message")
+      button.close(type="button" data-toggle="collapse" data-target="#error-container" aria-label="Close" aria-expanded="false" aria-controls="error-container")
+        span(aria-hidden="true") &times;
+

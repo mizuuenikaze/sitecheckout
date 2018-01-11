@@ -2,7 +2,6 @@ var app = require('ampersand-app');
 var PageView = require('./base');
 var templates = require('../templates');
 var LoginForm = require('../forms/login');
-var xhr = require('xhr');
 var _ = require('lodash');
 
 
@@ -11,7 +10,7 @@ module.exports = PageView.extend({
 	template: templates.pages.login,
 	events: {
 		'click [data-hook=confirm]': 'confirmApproval',
-		'click [data-hook=deny]': 'denyApproval',
+		'click [data-hook=deny]': 'denyApproval'
 	},
 	bindUiTo: function (external) {
 		if (external === 'bootstrap') {

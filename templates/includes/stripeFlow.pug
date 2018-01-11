@@ -1,10 +1,10 @@
-div#flowStripe.panel-group(role="tablist" aria-multiselectable="true")
-  div.panel.panel-default
-    div#stepOneHeading.panel-heading(role="tab")
-      h4.panel-title
+div#flowStripe(role="tablist")
+  div.card
+    div#stepOneHeading.card-header(role="tab")
+      h4
         a.collapsed(data-hook="stepOne checkoutStep" role="button" data-toggle="collapse" data-parent="#flowStripe" href="#stepOne" aria-expanded="false" aria-controls="stepOne") Step One
-    div#stepOne.panel-collapse.collapse(roles="tabpanel" aria-labelledby="stepOneHeading")
-      div.panel-body
+    div#stepOne.collapse(roles="tabpanel" aria-labelledby="stepOneHeading")
+      div.card-body
         form(data-hook="payment-form")
           fieldset(data-hook="field-container")
           div
@@ -15,23 +15,23 @@ div#flowStripe.panel-group(role="tablist" aria-multiselectable="true")
             hr
           div.buttons
             button.btn(data-hook="reset" type="submit") Continue
-  div.panel.panel-default
-    div#stepTwoHeading.panel-heading(role="tab")
-      h4.panel-title
+  div.card
+    div#stepTwoHeading.card-header(role="tab")
+      h4
         a.collapsed(data-hook="stepTwo checkoutStep" role="button" data-toggle="collapse" data-parent="#flowStripe" href="#stepTwo" aria-expanded="false" aria-controls="stepTwo") Step Two
-    div#stepTwo.panel-collapse.collapse(roles="tabpanel" aria-labelledby="stepTwoHeading")
-      div.panel-body
+    div#stepTwo.collapse(roles="tabpanel" aria-labelledby="stepTwoHeading")
+      div.card-body
         canvas(width="400" height="100" data-hook="sig") Signature Pad
         form(data-hook="sig-check")
         button.btn(data-hook="stripebutton") Stripe Pay
         div
-          span.glyphicon.glyphicon-send
-  div.panel.panel-default
-    div#endHeading.panel-heading(role="tab")
-      h4.panel-title
+          span.fas.fa-paper-plane
+  div.card
+    div#endHeading.card-header(role="tab")
+      h4
         a.collapsed(data-hook="end checkoutStep" role="button" data-toggle="collapse" data-parent="#flowStripe" href="#end" aria-expanded="false" aria-controls="end") Final Payment Info
-    div#end.panel-collapse.collapse(roles="tabpanel" aria-labelledby="endHeading")
-      div.panel-body
+    div#end.collapse(roles="tabpanel" aria-labelledby="endHeading")
+      div.card-body
         form(data-hook="payment-confirm")
           fieldset(data-hook="field-container")
           div.buttons
