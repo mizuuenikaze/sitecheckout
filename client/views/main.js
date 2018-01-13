@@ -105,7 +105,7 @@ module.exports = View.extend({
 					app.pageContext.me.token = '';
 					app.router.redirectTo(app.contextPath + 'login');
 				} else {
-					options.pageView.errorMessage = response.rawRequest.responseText;
+					options.pageView.setErrorMessage(response.rawRequest.responseText);
 				}
 			}
 		});

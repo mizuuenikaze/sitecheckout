@@ -61,7 +61,7 @@ module.exports = PageView.extend({
 	},
 	flowPayPal: function () {
 		if (this.model.payment.currentStep !== 'start') {
-			this.errorMessage = 'The current flow will be abandoned...';
+			this.setErrorMessage('The current flow will be abandoned...');
 			setTimeout(this.newFlow, 1000);
 		}
 
@@ -69,7 +69,7 @@ module.exports = PageView.extend({
 	},
 	flowStripe: function () {
 		if (this.model.payment.currentStep !== 'start') {
-			this.errorMessage = 'The current flow will be abandoned...';
+			this.setErrorMessage('The current flow will be abandoned...');
 			setTimeout(this.newFlow, 1000);
 		}
 

@@ -106,7 +106,7 @@ module.exports = PaymentFlowView.extend({
 			).then(function (paymentId) {
 				model.currentStep = 'end';
 				model.committedPayment = {service: 'future api call for payment', price: 9.99};
-				app.currentPage.errorMessage = 'Thanks! This checkout is done.'
+				app.currentPage.setErrorMessage('Thanks! This checkout is done.');
 				app.currentPage.nextStep();
 			}).catch(app.handleError);
 		} else {
