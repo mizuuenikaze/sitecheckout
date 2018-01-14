@@ -248,7 +248,7 @@ app.extend({
 			);
 		}
 	},
-	dateFormat(date) {
+	dateFormat: function (date) {
 		// returns a yyy/mm/dd string
 		var candidate = new Date(date);
 		var month = '' + (candidate.getMonth() + 1);
@@ -265,7 +265,7 @@ app.extend({
 
 		return [year, month, day].join('/');
 	},
-	dateDiff(datepart, date1, date2) {
+	dateDiff: function (datepart, date1, date2) {
 		var diff = date2.getTime() - date1.getTime();
 		var divideBy = {
 			w:604800000,
