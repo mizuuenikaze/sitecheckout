@@ -22,7 +22,7 @@ module.exports = View.extend({
 	},
 	integrateUi: function () {
 		// flow UIs are delayed so force a bootstrap update
-		app.mainView.updateBootstrapUi(this.el);
+		window.BSN.initCallback(this.el);
 	},
 	handlePaymentsResponse: function (body) {
 		if (body.state && body.state === 'created') {

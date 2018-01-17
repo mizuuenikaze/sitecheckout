@@ -1,9 +1,8 @@
 section.page.login
   div.container
     h2 Login
-    div.alert.alert-danger.hidden(role="alert" data-hook="error-message")
-      span.glyphicon.glyphicon-exclamation-sign(aria-hidden="true")
-      span.sr-only Error:
+    div(data-hook="error-container")
+
     form(data-hook="login-form")
       fieldset(data-hook="field-container")
       div.buttons
@@ -13,9 +12,9 @@ section.page.login
     div.modal-dialog(role="document")
       div.modal-content
         div.modal-header
+          h5.modal-title Approval
           button.close(type="button" data-dismiss="modal" aria-label="Close")
             span(aria-hidden="true") &times;
-          h4.modal-title Approval
         div.modal-body
           p Allow this application to access your user information?
         div.modal-footer

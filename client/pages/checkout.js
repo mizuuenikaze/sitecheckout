@@ -6,7 +6,6 @@ var PayPalFlow = require('../views/payPalFlow');
 var StripeFlow = require('../views/stripeFlow');
 var ChargeConfirm = require('../views/chargeConfirm');
 var app = require('ampersand-app');
-var _ = require('lodash');
 
 
 module.exports = PageView.extend({
@@ -17,11 +16,11 @@ module.exports = PageView.extend({
 		'click [data-hook~=paywithpaypal]': 'flowPayPal',
 		'click [data-hook~=paywithstripe]': 'flowStripe'
 	},
-	bindings: _.extend({}, PageView.prototype.bindings, {
+	bindings: {
 		'model.cms.page.a.a': {type: 'text', hook: 'outl-a.a'},
 		'model.cms.page.a.b': {type: 'text', hook: 'outl-a.b'},
 		'model.cms.page.a.c': {type: 'text', hook: 'outl-a.c'}
-	}),
+	},
 	initialize: function (attrs) {
 		// always start with a clean model
 		this.model.payment.unset([
@@ -36,7 +35,8 @@ module.exports = PageView.extend({
 			'metadata']);
 	},
 	render: function () {
-		this.renderWithTemplate(this);
+		PageView.prototype.render.apply(this, arguments);
+
 		this.paymentFlow = new ViewSwitcher({
 			el: this.queryByHook('paymentFlow'),
 			show: function (newView) {
@@ -52,7 +52,6 @@ module.exports = PageView.extend({
 			hook: 'charge-confirm',
 			waitFor: 'model',
 			prepareView: function (el) {
-				var model = this.model;
 				return new ChargeConfirm({
 					el: el,
 					model: this.model.payment
@@ -62,7 +61,7 @@ module.exports = PageView.extend({
 	},
 	flowPayPal: function () {
 		if (this.model.payment.currentStep !== 'start') {
-			this.errorMessage = 'The current flow will be abandoned...';
+			this.setErrorMessage('The current flow will be abandoned...');
 			setTimeout(this.newFlow, 1000);
 		}
 
@@ -70,7 +69,7 @@ module.exports = PageView.extend({
 	},
 	flowStripe: function () {
 		if (this.model.payment.currentStep !== 'start') {
-			this.errorMessage = 'The current flow will be abandoned...';
+			this.setErrorMessage('The current flow will be abandoned...');
 			setTimeout(this.newFlow, 1000);
 		}
 

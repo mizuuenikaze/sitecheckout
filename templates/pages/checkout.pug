@@ -1,17 +1,13 @@
 section.page.home
+  div(data-hook="error-container")
   //- grid content
-  div.container
-    div.alert.alert-danger.hidden(role="alert" data-hook="error-message")
-      span.glyphicon.glyphicon-exclamation-sign(aria-hidden="true")
-      span.sr-only Error:
 
   div.container
     div.row
       div.col-sm-8
-        div.panel.panel-primary
-          div.panel-heading
-            h3.panel-title(data-hook="outl-a.a")
-          div.panel-body
+        div.card.border-primary.mb-3
+          h3.card-header.bg-primary.text-white(data-hook="outl-a.a")
+          div.card-body
             p
               button.btn.btn-lg.btn-default(type="button" data-hook="paywithpaypal outl-a.b" disabled="disabled")
             p
@@ -22,11 +18,11 @@ section.page.home
           source(data-srcset="/images/rocks_64w.jpg 64w, /images/rocks_150w.jpg 150w" media="--small")
           source(data-srcset="/images/rocks_150w.jpg 150w, /images/rocks_300w.jpg 300w" media="--medium")
           source(data-srcset="/images/rocks_300w.jpg 300w")
-          img.lazyload(data-src="holder.js/75px56p?theme=custom&font=Glyphicons Halflings&text=%EE%81%86&auto=yes" data-sizes="auto")
+          img.lazyload(data-src="holder.js/50px50p?theme=custom&text=&#xF030;&auto=yes" data-sizes="auto")
 
     div.row
       div.col-sm-8
         div(data-hook="paymentFlow")
       div.col-sm-4
-        span.glyphicon.glyphicon-piggy-bank(aria-hidden="true")
+        span.fas.fa-shopping-bag(aria-hidden="true")
         div(data-hook="charge-confirm")
